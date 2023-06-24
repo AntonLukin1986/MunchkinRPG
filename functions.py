@@ -21,25 +21,24 @@ def teleprint(*args, delay=0.05, str_join=' '):
         time.sleep(delay)
 
 
-def save_game(current_stage):
+def save_game(current_stage: str):
     """Сохранение текущего прогресса игры."""
     import shelve
-
     from termcolor import cprint
 
     with shelve.open(SAVES_PATH) as db:
         db['IN_PROGRESS'] = current_stage
-    print('•' * 32)
     cprint('¶ Контрольная точка сохранения ¶', 'blue')
+    print('•' * 32)
 
 
-def show_image(image_name, description):
+def show_image(image_name: str, description: str):
     """Показать окно с картинкой."""
     import re
     import tkinter as tk
 
     window = tk.Tk()
-    window.title('Ролевая игра по мотивам настолки Манчкин')
+    window.title('Манчкин RPG')
     window.resizable(False, False)  # без регулировки размера
     window.attributes('-topmost', True)  # на передний план
     frame_1 = tk.Frame(master=window, bg='green')  # задний фон вокруг
@@ -94,13 +93,13 @@ def game_begins(screen):
     effects = [
         Cycle(
             screen,
-            FigletText('The   game   begins', font='big'),
+            FigletText('the   game   begins', font='big'),
             int(screen.height / 2 - 8)
         ),
         Stars(screen, 200),
         Print(
             screen,
-            SpeechBubble('Нажмите Q чтобы продолжить'),
+            SpeechBubble('Нажми Q для продолжения'),
             screen.height-5,
             speed=1,
             transparent=False
@@ -118,7 +117,7 @@ def animation(screen):
     from pyfiglet import Figlet
 
     scenes = []
-    text = Figlet(font='banner', width=200).renderText('START GAME')
+    text = Figlet(font='banner', width=200).renderText('Munchkin RPG')
     print(text)
     effects = [
         Print(
@@ -138,7 +137,7 @@ def animation(screen):
         ),
         Print(
             screen,
-            SpeechBubble('Нажмите Q чтобы начать'),
+            SpeechBubble('Нажми Q чтобы начать'),
             screen.height-5,
             speed=1,
             transparent=False
@@ -146,3 +145,25 @@ def animation(screen):
     ]
     scenes.append(Scene(effects, -1))
     screen.play(scenes, stop_on_resize=True)
+
+
+def playsound(filename: str):
+    from playsound import playsound
+    MP3_PATH = str(Path(__file__).resolve().parent / f'mp3/{filename}.mp3')
+    playsound(MP3_PATH, False)  # False - выполнять асинхронно
+
+
+def save_dagger(have_dagger: bool):
+    """Сохранение информации о наличии у персонажа Кинажала измены."""
+    import shelve
+
+    with shelve.open(SAVES_PATH) as db:
+        db['HAVE_DAGGER'] = have_dagger
+
+
+def check_have_dagger() -> bool:
+    """Проверка информации о наличии у персонажа Кинажала измены."""
+    import shelve
+
+    with shelve.open(SAVES_PATH) as db:
+        return bool(db['HAVE_DAGGER'])
