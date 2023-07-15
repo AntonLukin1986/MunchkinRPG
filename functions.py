@@ -6,7 +6,7 @@ IMAGES_DIR = Path(__file__).resolve().parent / 'images/'
 NO_IMAGE = 'Здесь должна была быть\nкрасивая картинка,\nно её украли гномы...'
 
 
-def teleprint(*args, delay=0.05, str_join=' '):
+def teleprint(*args, delay=0.05, str_join=' ') -> None:
     """Имитация печатания в терминале."""
     import sys
     import time
@@ -21,7 +21,7 @@ def teleprint(*args, delay=0.05, str_join=' '):
         time.sleep(delay)
 
 
-def save_game(current_stage: str):
+def save_game(current_stage: str) -> None:
     """Сохранение текущего прогресса игры."""
     import shelve
     from termcolor import cprint
@@ -32,7 +32,7 @@ def save_game(current_stage: str):
     print('•' * 32)
 
 
-def show_image(image_name: str, description: str):
+def show_image(image_name: str, description: str) -> None:
     """Показать окно с картинкой."""
     import re
     import tkinter as tk
@@ -84,7 +84,7 @@ def show_image(image_name: str, description: str):
     window.mainloop()
 
 
-def game_begins(screen):
+def game_begins(screen) -> None:
     """Анимация начала игры после создания персонажа."""
     from asciimatics.effects import Cycle, Print, Stars
     from asciimatics.renderers import FigletText, SpeechBubble
@@ -108,7 +108,7 @@ def game_begins(screen):
     screen.play([Scene(effects, 500)])
 
 
-def animation(screen):
+def animation(screen) -> None:
     """Анимационная заставка игры."""
     from asciimatics.renderers import FigletText, Fire, SpeechBubble
     from asciimatics.scene import Scene
@@ -147,14 +147,14 @@ def animation(screen):
     screen.play(scenes, stop_on_resize=True)
 
 
-def playsound(filename: str):
+def playsound(filename: str) -> None:
     from playsound import playsound
     MP3_PATH = str(Path(__file__).resolve().parent / f'mp3/{filename}.mp3')
     playsound(MP3_PATH, False)  # False - выполнять асинхронно
 
 
-def save_dagger(have_dagger: bool):
-    """Сохранение информации о наличии у персонажа Кинажала измены."""
+def save_dagger(have_dagger: bool) -> None:
+    """Сохранение информации о наличии у персонажа Кинжала измены."""
     import shelve
 
     with shelve.open(SAVES_PATH) as db:
@@ -167,3 +167,19 @@ def check_have_dagger() -> bool:
 
     with shelve.open(SAVES_PATH) as db:
         return bool(db['HAVE_DAGGER'])
+
+
+def save_race_class(race_class: str) -> None:
+    """Сохранение информации о расе и классе персонажа."""
+    import shelve
+
+    with shelve.open(SAVES_PATH) as db:
+        db['RACE_CLASS'] = race_class  # строка в формате "Раса-Класс"
+
+
+def save_health_value(health: int) -> None:
+    """Сохранение значения здоровья персонажа."""
+    import shelve
+
+    with shelve.open(SAVES_PATH) as db:
+        db['HEALTH'] = health

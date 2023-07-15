@@ -8,9 +8,10 @@ from termcolor import colored, cprint
 
 from functions import (
     animation, check_have_dagger, game_begins, playsound, save_dagger,
-    save_game, SAVES_PATH, show_image, teleprint
+    save_game, SAVES_PATH, save_health_value, save_race_class, show_image,
+    teleprint
 )
-from texts import colored_txt as clr
+from texts import colored_text as clr
 from texts import chapter_1
 from texts import chapter_2
 from texts import chapter_3
@@ -18,6 +19,8 @@ from texts import chapter_4
 from texts import chapter_5
 from texts import chapter_6
 from texts import chapter_7
+from texts import chapter_8
+from texts import chapter_9
 from texts import character_creation
 from texts.intro import INTRO_1, INTRO_2
 
@@ -35,7 +38,7 @@ def start_game():
         db.close()
         while input(clr.START_GAME).lower() != 'начать':
             pass
-        intro()
+        play_intro()
     else:
         cprint('Введи "Заново" - начать игру с самого начала', 'blue', end='')
         cprint(' (последнее сохранение будет сброшено!)', 'red')
@@ -52,26 +55,27 @@ def start_game():
         if decision == 'заново':
             del db['IN_PROGRESS']
             db.close()
-            intro()
+            play_intro()
 
 
-def intro():
+def play_intro():
     """Введение."""
     print()
     cprint('§ Введение', 'black', attrs=['bold'])
     print('•' * 27)
     teleprint(INTRO_1)
     input(clr.PUSH_ENTER)
-    show_image('country', 'Манчикистания')
+    show_image('country', 'Вымышляндия')
     teleprint(INTRO_2)
     input(clr.PUSH_ENTER)
-    character_creation_func()
+    play_character_creation()
 
 
-def character_creation_func():
+def play_character_creation():
     """Создание персонажа."""
     cprint('§ Создание персонажа', 'black', attrs=['bold'])
     save_game('character_creation')
+    time.sleep(2)
     teleprint(character_creation.A)
     input(clr.PUSH_ENTER)
     print(character_creation.DESCRIBE_CHARACTER, sep='\n')
@@ -96,20 +100,19 @@ def character_creation_func():
     time.sleep(2)
     Screen.wrapper(game_begins)
     print()
-    chapter_1_func()
+    play_chapter_1()
 
 
-def chapter_1_func():
+def play_chapter_1():
     """Начало."""
     cprint('§ Начало', 'black', attrs=['bold'])
     save_game('chapter_1')
+    time.sleep(2)
     print(chapter_1.A)
     input(clr.PUSH_ENTER)
     playsound('birds_song')
     show_image('city', 'город Токийск Алтайского края')
     print(chapter_1.A_2)
-    input(clr.PUSH_ENTER)
-    print(chapter_1.A_3)
     input(clr.PUSH_ENTER)
     show_image('thief', 'класс Вор')
     print(chapter_1.B_1)
@@ -157,19 +160,22 @@ def chapter_1_func():
     print()
     while input(
         clr.FORGIVE_ME
-    ).lower() != 'простите меня, я больше так не буду':
+    ).lower() != 'простите меня, я больше так не буду!':
         pass
     print()
     print(chapter_1.G)
     input(clr.PUSH_ENTER)
+    print(chapter_1.H)
+    input(clr.PUSH_ENTER)
     show_image('market_fight', 'Самое "уютное" местечко в городке...')
-    chapter_2_func()
+    play_chapter_2()
 
 
-def chapter_2_func():
+def play_chapter_2():
     """Погоня."""
     cprint('§ Погоня', 'black', attrs=['bold'])
     save_game('chapter_2')
+    time.sleep(2)
     print(chapter_2.A)
     input(clr.PUSH_ENTER)
     show_image('lame_goblin', 'Увечный гоблин')
@@ -217,13 +223,14 @@ def chapter_2_func():
     input(clr.PUSH_ENTER)
     print(chapter_2.M)
     input(clr.PUSH_ENTER)
-    chapter_3_func()
+    play_chapter_3()
 
 
-def chapter_3_func():
+def play_chapter_3():
     """Развязка."""
     cprint('§ Развязка', 'black', attrs=['bold'])
     save_game('chapter_3')
+    time.sleep(2)
     print(chapter_3.A)
     input(clr.PUSH_ENTER)
     print(chapter_3.EXP_1)
@@ -269,13 +276,14 @@ def chapter_3_func():
     print(chapter_3.IA)
     input(clr.PUSH_ENTER)
     save_dagger(have_dagger)
-    chapter_4_func()
+    play_chapter_4()
 
 
-def chapter_4_func():
+def play_chapter_4():
     """Неожиданный поворот."""
     cprint('§ Неожиданный поворот', 'black', attrs=['bold'])
     save_game('chapter_4')
+    time.sleep(2)
     print(chapter_4.A)
     input(clr.PUSH_ENTER)
     show_image('bones_brothers', 'Бледные Братья')
@@ -313,13 +321,14 @@ def chapter_4_func():
     show_image('dead_horse', 'Конь андедный')
     print(chapter_4.J)
     input(clr.PUSH_ENTER)
-    chapter_5_func()
+    play_chapter_5()
 
 
-def chapter_5_func():
+def play_chapter_5():
     """Таинственное место."""
     cprint('§ Таинственное место', 'black', attrs=['bold'])
     save_game('chapter_5')
+    time.sleep(2)
     print(chapter_5.A)
     input(clr.PUSH_ENTER)
     show_image('oil_lamp', 'Та самая лампа...')
@@ -342,13 +351,14 @@ def chapter_5_func():
     print(chapter_5.G)
     input(clr.PUSH_ENTER)
     show_image('princess_kenny', 'Принцесса Кенни')
-    chapter_6_func()
+    play_chapter_6()
 
 
-def chapter_6_func():
+def play_chapter_6():
     """Серьёзный разговор."""
     cprint('§ Серьёзный разговор', 'black', attrs=['bold'])
     save_game('chapter_6')
+    time.sleep(2)
     print(chapter_6.MISTAKE)
     input(clr.PUSH_ENTER)
     playsound('skrimer')
@@ -397,16 +407,19 @@ def chapter_6_func():
         input(clr.PUSH_ENTER)
     print(chapter_6.IA)
     input(clr.PUSH_ENTER)
+    show_image('cthulhu', 'Великий и ужасный Ктулху')
     print(chapter_6.J)
     input(clr.PUSH_ENTER)
     print(chapter_6.K)
     input(clr.PUSH_ENTER)
+    play_chapter_7()
 
 
-def chapter_7_func():
+def play_chapter_7():
     """Радужные перспективы."""
     cprint('§ Радужные перспективы', 'black', attrs=['bold'])
     save_game('chapter_7')
+    time.sleep(2)
     print(chapter_7.A)
     input(clr.PUSH_ENTER)
     print(chapter_7.B)
@@ -442,19 +455,148 @@ def chapter_7_func():
     input(clr.PUSH_ENTER)
     print(chapter_7.J)
     input(clr.PUSH_ENTER)
+    print(chapter_7.K)
+    input(clr.PUSH_ENTER)
+    print(chapter_7.L)
+    input(clr.PUSH_ENTER)
+    while input(chapter_7.M).lower() != chapter_7.M_1.lower():
+        pass
+    print()
+    print(chapter_7.N)
+    input(clr.PUSH_ENTER)
+    print(chapter_7.OA)
+    input(clr.PUSH_ENTER)
+    show_image('tester', 'Эта штука изменит твою жизнь навсегда!')
+    print(chapter_7.OA_1)
+    input(clr.PUSH_ENTER)
+    play_chapter_8()
+
+
+def play_chapter_8():
+    """Специальная подготовка."""
+    cprint('§ Специальная подготовка', 'black', attrs=['bold'])
+    save_game('chapter_8')
+    time.sleep(2)
+    print(chapter_8.A)
+    input(clr.PUSH_ENTER)
+    playsound('fanfars')
+    show_image('fanfars', 'Фанфары в твою честь')
+    print(chapter_8.B)
+    input(clr.PUSH_ENTER)
+    for question in (
+        chapter_8.C_1, chapter_8.C_2, chapter_8.C_3, chapter_8.C_4
+    ):
+        print(question)
+        while input(clr.ANSWER_OPTION).lower() not in ('а', 'б', 'в', 'г'):
+            pass
+        print()
+    print(chapter_8.C_5)
+    while (choice_1 := input(clr.ANSWER_OPTION)).lower() not in (
+        'а', 'б', 'в'
+    ):
+        pass
+    print()
+    print(chapter_8.D)
+    input(clr.PUSH_ENTER)
+    print(chapter_8.E_1)
+    while input(clr.ANSWER_OPTION).lower() not in ('а', 'б', 'в'):
+        pass
+    print()
+    show_image('fallout', 'Из теста К.О.З.А.')
+    print(chapter_8.E_2)
+    while input(clr.ANSWER_OPTION).lower() not in ('а', 'б', 'в'):
+        pass
+    print()
+    print(chapter_8.F)
+    while (choice_2 := input(clr.ANSWER_OPTION)).lower() not in (
+        'а', 'б', 'в'
+    ):
+        pass
+    cprint('\n► Тестирование успешно завершено! Обработка результатов...\n',
+           'blue')
+    time.sleep(3)
+    print(chapter_8.G)
+    input(clr.PUSH_ENTER)
+    race = clr.RACES[choice_1.lower()]
+    _class = clr.CLASSES[choice_2.lower()]
+    race_class = colored(f'{race}-{_class}', 'green')
+    print(chapter_8.H.format(char=clr.CHAR_NAME, result=race_class))
+    input(clr.PUSH_ENTER)
+    show_image(clr.FILES_RACES[choice_1], 'раса ' + race)
+    show_image(clr.FILES_CLASSES[choice_2], 'класс ' + _class)
+    print(chapter_8.IA)
+    input(clr.PUSH_ENTER)
+    print(chapter_8.J)
+    input(clr.PUSH_ENTER)
+    save_race_class(race_class)
+    play_chapter_9()
+
+
+def play_chapter_9():
+    """Чебуратор."""
+    cprint('§ Чебуратор', 'black', attrs=['bold'])
+    save_game('chapter_9')
+    time.sleep(2)
+    print(chapter_9.A)
+    input(clr.PUSH_ENTER)
+    print(chapter_9.Aa)
+    input(clr.PUSH_ENTER)
+    print(chapter_9.B)
+    input(clr.PUSH_ENTER)
+    print(chapter_9.C)
+    input(clr.PUSH_ENTER)
+    playsound('garmon')
+    show_image('cheburator', 'Серьёзно? Он сделал из Гены гармошку?!!')
+    print(chapter_9.Cc)
+    input(clr.PUSH_ENTER)
+    print(chapter_9.D_CHOICE)
+    while (result := input(clr.CHOICE)) not in ('1', '2'):
+        pass
+    print()
+    if result == '1':
+        print(chapter_9.D_1)
+        input(clr.PUSH_ENTER)
+    if result == '2':
+        print(chapter_9.D_2)
+        input(clr.PUSH_ENTER)
+    print(chapter_9.E)
+    input(clr.PUSH_ENTER)
+    print(chapter_9.F)
+    input(clr.PUSH_ENTER)
+    print(chapter_9.G)
+    input(clr.PUSH_ENTER)
+    import mini_game
+    print(mini_game.RULES_1)
+    input(clr.PUSH_ENTER)
+    print(mini_game.RULES_2)
+    input(clr.PUSH_ENTER)
+    wins, health = mini_game.start()
+    save_health_value(health)
+    save_game('chapter_10')
+    time.sleep(2)
+    print(chapter_9.H.format(wins, colored(f'{health} единиц', 'green')))
+    input(clr.PUSH_ENTER)
+
+
+def play_chapter_10():
+    """... ."""
+    cprint('§ ...', 'black', attrs=['bold'])
 
 
 if __name__ == '__main__':
     GAME_STAGES = {
-        'character_creation': character_creation_func,
-        'chapter_1': chapter_1_func,
-        'chapter_2': chapter_2_func,
-        'chapter_3': chapter_3_func,
-        'chapter_4': chapter_4_func,
-        'chapter_5': chapter_5_func,
-        'chapter_6': chapter_6_func,
-        'chapter_7': chapter_7_func
+        'character_creation': play_character_creation,
+        'chapter_1': play_chapter_1,
+        'chapter_2': play_chapter_2,
+        'chapter_3': play_chapter_3,
+        'chapter_4': play_chapter_4,
+        'chapter_5': play_chapter_5,
+        'chapter_6': play_chapter_6,
+        'chapter_7': play_chapter_7,
+        'chapter_8': play_chapter_8,
+        'chapter_9': play_chapter_9,
+        'chapter_10': play_chapter_10,
     }
-    # Screen.wrapper(animation)
+    Screen.wrapper(animation)
     start_game()
-    # chapter_7_func()
+    # play_chapter_10()
