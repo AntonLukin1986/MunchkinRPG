@@ -169,12 +169,12 @@ def check_have_dagger() -> bool:
         return bool(db['HAVE_DAGGER'])
 
 
-def save_race_class(race_class: str) -> None:
+def save_race_klass(race_klass: str) -> None:
     """Сохранение информации о расе и классе персонажа."""
     import shelve
 
     with shelve.open(SAVES_PATH) as db:
-        db['RACE_CLASS'] = race_class  # строка в формате "Раса-Класс"
+        db['RACE_KLASS'] = race_klass  # строка в формате "Раса-Класс"
 
 
 def save_health_value(health: int) -> None:

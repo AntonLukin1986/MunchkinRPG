@@ -2,7 +2,7 @@
 from termcolor import colored
 
 RACES = {'а': 'Эльф', 'б': 'Дварф', 'в': 'Халфлинг'}
-CLASSES = {'а': 'Воин', 'б': 'Волшебник', 'в': 'Клирик'}
+KLASSES = {'а': 'Воин', 'б': 'Волшебник', 'в': 'Клирик'}
 FILES_RACES = {'а': 'elf', 'б': 'dvarf', 'в': 'halfling'}
 FILES_CLASSES = {'а': 'warrior', 'б': 'wizard', 'в': 'cleric'}
 

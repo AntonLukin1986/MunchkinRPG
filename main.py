@@ -8,7 +8,7 @@ from termcolor import colored, cprint
 
 from functions import (
     animation, check_have_dagger, game_begins, playsound, save_dagger,
-    save_game, SAVES_PATH, save_health_value, save_race_class, show_image,
+    save_game, SAVES_PATH, save_health_value, save_race_klass, show_image,
     teleprint
 )
 from texts import colored_text as clr
@@ -518,17 +518,17 @@ def play_chapter_8():
     print(chapter_8.G)
     input(clr.PUSH_ENTER)
     race = clr.RACES[choice_1.lower()]
-    _class = clr.CLASSES[choice_2.lower()]
-    race_class = colored(f'{race}-{_class}', 'green')
-    print(chapter_8.H.format(char=clr.CHAR_NAME, result=race_class))
+    klass = clr.KLASSES[choice_2.lower()]
+    race_klass = colored(f'{race}-{klass}', 'green')
+    print(chapter_8.H.format(char=clr.CHAR_NAME, result=race_klass))
     input(clr.PUSH_ENTER)
     show_image(clr.FILES_RACES[choice_1], 'раса ' + race)
-    show_image(clr.FILES_CLASSES[choice_2], 'класс ' + _class)
+    show_image(clr.FILES_CLASSES[choice_2], 'класс ' + klass)
     print(chapter_8.IA)
     input(clr.PUSH_ENTER)
     print(chapter_8.J)
     input(clr.PUSH_ENTER)
-    save_race_class(race_class)
+    save_race_klass(race_klass)
     play_chapter_9()
 
 
