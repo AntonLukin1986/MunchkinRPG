@@ -1,102 +1,163 @@
-"""Игровые классы."""  # сделать наследование: Card -> ItemCard...
+"""Игровые классы."""
 
 
-class Item():
-    '''Для создания обычной шмотки.'''
-    def __init__(self, kind, value, description, require=None):
+class Card():
+    '''Базовый класс карты.'''
+    def __init__(self, description, require=None, image=None):
+        self.description = description
+        self.require = require
+        self.image = image
+
+    def __str__(self):
+        return (
+            self.description + (f'({self.require})' if self.require else '')
+        )
+
+
+class Item(Card):
+    '''Карта носимой шмотки. Её категория и значение силы.'''
+    def __init__(self, description, kind, value, require=None, image=None):
+        super().__init__(description, require, image)
         self.kind = kind
         self.value = value
-        self.description = description
-        self.require = require
-        # добавить картинку как свойство?
-
-    def __str__(self):
-        return (
-            self.description +
-            (f'({self.require})' if self.require is not None else '')
-        )
 
 
-class Buff():
-    '''Для создания особой способности.'''
-    def __init__(self, description, require=None):
-        self.description = description
-        self.require = require
-        # добавить картинку как свойство?
-
-    def __str__(self):
-        return (
-            self.description +
-            (f'({self.require})' if self.require is not None else '')
-        )
+class Buff(Card):
+    '''Карта особой способности класса или расы. Может быть универсальной.'''
+    def __init__(self, description, kind, require=None, image=None):
+        super().__init__(description, require, image)
+        self.kind = kind
 
 
-class Boost():
-    '''Для создания разового усилителя.'''
-    def __init__(self, description, value):
-        self.description = description
+class Boost(Card):
+    '''Карта разового усилителя. Его значение.'''
+    def __init__(self, description, value, require=None, image=None):
+        super().__init__(description, require, image)
         self.value = value
-        # добавить картинку как свойство?
-
-    def __str__(self):
-        return self.description
 
 
-class Curse():
-    '''Для создания проклятья или специфичной карты-бонуса.'''
-    def __init__(self, description, require=None):
-        self.description = description
-        self.require = require
-        # добавить картинку как свойство?
-        # можно установить свойство lose: helmet, armor и т.п.
-
-    def __str__(self):
-        return self.description
+class Curse(Card):
+    '''Карта проклятья.'''
+    def __init__(self, description, kind, lose=None, require=None, image=None):
+        super().__init__(description, require, image)
+        self.kind = kind
+        self.lose = lose
 
 
 class Character():
-    '''Для создания персонажа.'''
-    from items import (
-        HELM_COURAGE, SLIMY_ARMOR, SANDALS, LONG_POLE, NO_ITEM
-    )
-
-    def __init__(
-            self, race, klass,
-            helmet=HELM_COURAGE,
-            armor=SLIMY_ARMOR,
-            footgear=SANDALS,
-            left_arm=LONG_POLE,
-            right_arm=NO_ITEM,
-            special=[]
-    ):
+    '''Базовый класс персонажа.'''
+    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm):
         self.race = race
-        self.klass = klass
         self.helmet = helmet
         self.armor = armor
         self.footgear = footgear
         self.left_arm = left_arm
         self.right_arm = right_arm
-        self.knees = 0  # только для воина
-        self.tights = 0  # только для воина
-        self.title = 0
-        self.boost = 0
-        self.special = special
+        self.boost = 0  # разовый усилитель
+        self.title = False  # впечатляющий титул
+        self.invisibility = False  # зелье Невидимости
+        self.only_armor = False  # проклятье Кривое зеркало
+        self.woman = False  # проклятье Смена пола
 
-    def total_strength(self):
+    def items_strength(self):
         return sum(
-            (self.helmet.value, self.armor.value, self.footgear.value,
-             self.left_arm.value, self.right_arm.value,
-             self.knees, self.tights, self.title)
-        )
+                (self.helmet.value, self.armor.value, self.footgear.value,
+                 self.left_arm.value, self.right_arm.value,
+                 3 if self.title else 0)
+            )
+
+    def strength(self):
+        if self.only_armor:
+            strength = self.armor.value
+        else:
+            strength = self.items_strength()
+        if self.woman:
+            return strength - 5
+        return strength
 
     def __str__(self):
-        specials = [buff.description for buff in self.special]
+        return 'Базовый класс.'
+
+
+class Warrior(Character):
+    '''Класс Воин.'''
+    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
+                 doppleganger=False):
+        super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
+        self.klass = 'Воин'
+        self.doppleganger = doppleganger
+        self.knees = False
+        self.tights = False
+
+    def items_strength(self):
+        return sum(
+                (self.helmet.value, self.armor.value, self.footgear.value,
+                 self.left_arm.value, self.right_arm.value,
+                 3 if self.title else 0,
+                 2 if self.knees else 0, 2 if self.tights else 0)
+            )
+
+    def __str__(self):
         return (
             f'{self.race}-{self.klass}\n'
             f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
             f'{self.left_arm}\n{self.right_arm}\n'
-            f'Боевая сила: {self.total_strength()}\n'
+            f'Наколенники: {self.knees}\nКолготы: {self.tights}\n'
+            f'Боевая сила: {self.strength()}\n'
             f'Разовый усилитель: {self.boost}\n'
-            'Специальные приёмы класса: ' +
-            ('\n' + '\n'.join(specials) if self.special else 'нет')
+            f'Бафы:\nЗелье невидимости {self.invisibility}\n'
+            f'Дупельгангер {self.doppleganger}'
+        )
+
+
+class Wizard(Character):
+    '''Класс Волшебник.'''
+    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
+                 pollymorph=False):
+        super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
+        self.klass = 'Волшебник'
+        self.pollymorph = pollymorph
+        self.illusion = False
+        self.friendship = False
+
+    def __str__(self):
+        return (
+            f'{self.race}-{self.klass}\n'
+            f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
+            f'{self.left_arm}\n{self.right_arm}\n'
+            f'Боевая сила: {self.strength()}\n'
+            f'Разовый усилитель: {self.boost}\n'
+            f'Бафы:\nЗелье невидимости {self.invisibility}\n'
+            f'Морок {self.illusion}\n'
+            f'Попуморф {self.pollymorph}\n'
+            f'Зелье дружбы {self.friendship}'
+        )
+
+
+class Cleric(Character):
+    '''Класс Клирик.'''
+    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
+                 wishing_ring=0):
+        super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
+        self.klass = 'Клирик'
+        self.wishing_ring = wishing_ring
+        self.god = False
+
+    def use_wishing_ring(self, lose, value):
+        '''Использовать Хотельное кольцо для отмены проклятья.'''
+        if (self.wishing_ring and getattr(self, lose) != value
+           and int(input('Использовать Хотельное кольцо? 0 или 1 '))):
+            self.wishing_ring -= 1
+            return False
+        return True
+
+    def __str__(self):
+        return (
+            f'{self.race}-{self.klass}\n'
+            f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
+            f'{self.left_arm}\n{self.right_arm}\n'
+            f'Боевая сила: {self.strength()}\n'
+            f'Разовый усилитель: {self.boost}\n'
+            f'Бафы:\nЗелье невидимости {self.invisibility}\n'
+            f'Хотельное кольцо {self.wishing_ring}'
         )
