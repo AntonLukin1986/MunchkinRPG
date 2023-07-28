@@ -153,6 +153,7 @@ def get_treasure(character, cards_set):
 
 
 def get_curse(character, cards_set):
+def get_curse(character, cards_set):
     '''Отрабатывает открытие двери с проклятьем.'''
     from classes import Curse
     from cards import CHEAT, NO_ITEM
