@@ -1,15 +1,5 @@
 """Логика игры, сгруппированная в функциях."""
 
-TIGHTS = '''У тебя в рюкзаке как раз лежат Колготки великанской силы (20 den)
-Ты давно хотел их примерять, но настоящим Воинам одевать такое не по статусу...
-С помощью Чита ты наплевал на все приличия и с радостью натянул колготы
-на свои тощие ляшки: они дают тебе +2 к боевой силе.'''
-ILLUSION = '''Ты обнаружил древний свиток с необычным заклинанием. Следующий
-монстр, с которым ты столкнёшься, будет заменён на Огорошенную траву.'''
-GOD = '''Внезапно таинственная трансцендентная сущность вмешивается в
-обычный порядок вещей и ты непостижимым образом проскакиваешь через
-следующий уровень.'''
-
 
 def create_events(floors=5, show=True):
     '''Создание схемы уровня со случайным расположением событий за дверями.'''
@@ -135,8 +125,9 @@ def get_random_card(cards_set, show=True):
     return card
 
 
-def free_or_monster_event(character, cards_set):
-    '''Отрабатывает открытие свободной двери или двери с монстром.'''
+def get_treasure(character, cards_set):
+    '''Отрабатывает найденную шмотку при открытии свободной двери или после
+    победы над монстром.'''
     from classes import Boost, Buff, Item
 
     card = get_random_card(cards_set)
@@ -155,14 +146,14 @@ def free_or_monster_event(character, cards_set):
     print(character)
 
 
-def curse_event(character, cards_set):
+def get_curse(character, cards_set):
     '''Отрабатывает открытие двери с проклятьем.'''
-    from items import NO_ITEM
+    from classes import Curse
+    from items import CHEAT, NO_ITEM
 
     card = get_random_card(cards_set)
-    if card.kind == 'doom':
-        print('Поймал утку. Откатись на первый уровень.')
-        return
+    if card.kind == 'tights':
+        print(CHEAT.after_use)
     if card.kind == 'lose':
         if card.lose not in ('min_arm', 'max_arm'):
             lose = card.lose
@@ -178,7 +169,168 @@ def curse_event(character, cards_set):
     else:
         lose = card.kind
         value = True
-    (setattr(character, lose, value)
-     if character.klass != 'Клирик' or character.use_wishing_ring(lose, value)
-     else print('Ты используешь Хотельное кольцо: проклятье отменяется!'))
+    if (card is Curse and character.klass == 'Клирик'
+       and character.use_wishing_ring(lose, value)):
+        print('Ты используешь Хотельное кольцо: проклятье отменяется!')
+    else:
+        setattr(character, lose, value)  # в том числе для Бафа
     print(character)
+
+
+def action(character):
+    '''Ввод команды игроком и проверка возможности её выполнения.'''
+    command = input('Введи команду "attack"/"strong"/"defence"/"boost" ')
+    if ((command == 'attack' and character.stamina < 10)
+       or (command == 'strong' and character.stamina < 20)):
+        print('Недостаточно выносливости!')
+        return True
+    if command == 'boost' and character.boost == 0:
+        print('Бустов пока нет. Применять нечего!')
+        return True
+    return command
+
+
+def prepare_monster(character):
+    '''Подготавливает монстра для битвы.'''
+    from classes import Monster
+    from items import ILLUSION
+
+    if character.klass == 'Волшебник' and character.illusion:
+        character.illusion = False
+        print(ILLUSION.after_use)
+        return Monster('Огорошенная трава', 1, 'Смывка автоматическая.', None)  # заменить классом
+    return Monster('Ужасный монстр!', 1, 'Непобедимый', None)  # подставить рандомного
+
+
+def wizard_spells(character):
+    '''Предоставление волшебнику возможности усмирить монстра вместо боя.'''
+    from items import POLLYMORPH_POTION, FRIENDSHIP_POTION
+
+    morph = (
+        '\n' + POLLYMORPH_POTION.description if character.pollymorph else ''
+    )
+    friend = (
+        '\n' + FRIENDSHIP_POTION.description if character.friendship else ''
+    )
+    print(
+        f'У тебя есть специальные заклинания против монстров:{morph}{friend}'
+        '\nМожешь воспользоваться, чтобы избежать боя!'
+    )
+    while ((decision := input('Выбери: «Прогнать монстра» или «Бой»').lower())
+           not in ('прогнать монстра', 'бой')):
+        pass
+    if decision == 'бой':
+        return False
+    if character.pollymorph:  # в приоритете первым используется Попуморф
+        character.pollymorph = False
+        print(POLLYMORPH_POTION.after_use)
+        return True
+    character.friendship = False
+    print(FRIENDSHIP_POTION.after_use)
+    return None
+
+
+def start_fight(character):
+    '''Запускает битву персонажа с монстром.'''
+    monster = prepare_monster(character)
+    print(f'За дверью тебя встретил {monster}. Приготовься к битве!')
+    if (character.klass == 'Волшебник'
+       and character.pollymorph or character.friendship):
+        if result := wizard_spells(character) is not False:
+            return result  # True или None
+    attacks = {'attack': character.attack,
+               'strong': character.strong_attack,
+               'boost': character.special}
+    total_damage = 0
+    print('Сила шмоток >>>', character.strength())
+    while True:
+        print('Нанесено урона >>>', total_damage)
+        print('Осталось жизней у монстра >>>', monster.health)
+        print('Здоровье >>>', character.health)
+        print('Выносливость >>>', character.stamina)
+        while (command := action(character)) is True:
+            pass
+        if command in attacks:
+            defence = 0
+            damage = attacks[command]()
+            total_damage += damage
+            monster.health -= damage
+        else:
+            defence = character.defence()
+        if monster.health <= 0:
+            print('Ты победил!')
+            setattr(character.woman, False)
+            setattr(character.only_armor, False)
+            return True
+        character.health -= monster.attack(defence)
+        if character.health <= 0:
+            print('Монстр победил!')
+            setattr(character.woman, False)
+            setattr(character.only_armor, False)
+            return False
+
+
+def monster_get_item(character):
+    '''Монстр забирает случайную шмотку при неудачной смывке.'''
+    from random import choice
+    from items import NO_ITEM
+
+    item_types = [
+        'helmet', 'armor', 'footgear', 'left_arm', 'right_arm',
+        'knees', 'tights'
+    ]
+    if character.klass != 'Воин':
+        item_types.remove('knees')
+        item_types.remove('tights')
+    for type_ in item_types:
+        stuff = getattr(character, type_)
+        if stuff is False or stuff is NO_ITEM:
+            item_types.remove(type_)
+    print('Имеющиеся шмотки: ', item_types)
+    if item_types:
+        lose_type = choice(item_types)
+        if lose_type in ('knees', 'tights'):
+            new_value = False
+        else:
+            new_value = NO_ITEM
+        print(f'Ты потерял {getattr(character, lose_type)}.')
+        setattr(character, lose_type, new_value)
+    else:
+        print('Так как экипировки у тебя нет, то пришлось сбросить штаны... ')
+
+
+def run_away(character):
+    '''Смывка при поражении в бою с монстром.'''
+    from random import randint
+
+    from text import (
+        RUN_AWAY, RUN_AWAY_BAD, RUN_AWAY_OK, RUN_AWAY_SO_SO, USE_INVISIBLE
+    )
+
+    # DICE_IMAGES = {
+    #     0: ..., 1: ..., 2: ..., 3: ..., 4: ..., 5: ..., 6: ...
+    # }
+    print(RUN_AWAY)
+    while input('Введи «Бросаю кубик»: ').lower() != 'бросаю кубик':
+        pass
+    dice = randint(1, 6)
+    # show_image('На кубике выпало...', DICE_IMAGES[dice])
+    print(dice)
+    if character.chicken:
+        dice -= 1
+        # show_image('Курица на башке уменьшила на 1 результат твоего броска', DICE_IMAGES[dice])
+        print(dice, 'С курицей')
+    if dice >= 5:
+        print(RUN_AWAY_OK)
+    elif dice >= 3:
+        print(RUN_AWAY_SO_SO)
+        monster_get_item(character)
+    else:
+        if character.invisibility:
+            character.invisibility = False
+            print(USE_INVISIBLE)
+            # show_image('Зелье невидимости. С газиками!', image)
+        else:
+            print(RUN_AWAY_BAD)
+            return False
+    return True
