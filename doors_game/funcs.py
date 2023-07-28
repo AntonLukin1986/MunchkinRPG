@@ -131,6 +131,9 @@ def get_random_card(cards_set, show=True):
 def get_treasure(character, cards_set):
     '''Отрабатывает найденную шмотку при открытии свободной двери или после
     победы над монстром.'''
+def get_treasure(character, cards_set):
+    '''Отрабатывает найденную шмотку при открытии свободной двери или после
+    победы над монстром.'''
     from classes import Boost, Buff, Item
 
     card = get_random_card(cards_set)
@@ -157,6 +160,8 @@ def get_curse(character, cards_set):
     card = get_random_card(cards_set)
     if card.kind == 'tights':
         print(CHEAT.after_use)
+    if card.kind == 'tights':
+        print(CHEAT.after_use)
     if card.kind == 'lose':
         if card.lose not in ('min_arm', 'max_arm'):
             lose = card.lose
@@ -172,6 +177,11 @@ def get_curse(character, cards_set):
     else:
         lose = card.kind
         value = True
+    if (card is Curse and character.klass == 'Клирик'
+       and character.use_wishing_ring(lose, value)):
+        print('Ты используешь Хотельное кольцо: проклятье отменяется!')
+    else:
+        setattr(character, lose, value)  # в том числе для Бафа
     if (card is Curse and character.klass == 'Клирик'
        and character.use_wishing_ring(lose, value)):
         print('Ты используешь Хотельное кольцо: проклятье отменяется!')

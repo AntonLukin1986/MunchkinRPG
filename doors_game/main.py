@@ -8,7 +8,7 @@ import cards as item
 
 def run_doors_game(race, klass, level):
     '''Запускает прохождение уровней с дверями.'''
-    from doors_game.cards import DIVINE_INTERDICTION
+    from cards import DIVINE_INTERDICTION
     from text import CHOOSE_DOOR
 
     character, monster_treasures, door_cards = prepare_game(

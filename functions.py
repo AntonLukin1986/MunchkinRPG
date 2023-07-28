@@ -148,6 +148,7 @@ def animation(screen) -> None:
 
 
 def playsound(filename: str) -> None:
+    '''Проигрывание звуков в игре.'''
     from playsound import playsound
     MP3_PATH = str(Path(__file__).resolve().parent / f'mp3/{filename}.mp3')
     playsound(MP3_PATH, False)  # False - выполнять асинхронно
@@ -177,9 +178,9 @@ def save_race_klass(race_klass: str) -> None:
         db['RACE_KLASS'] = race_klass  # строка в формате "Раса-Класс"
 
 
-def save_health_value(health: int) -> None:
-    """Сохранение значения здоровья персонажа."""
+def save_rank(rank: int) -> None:
+    """Сохранение значения ранга персонажа."""
     import shelve
 
     with shelve.open(SAVES_PATH) as db:
-        db['HEALTH'] = health
+        db['RANK'] = rank

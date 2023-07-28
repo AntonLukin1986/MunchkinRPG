@@ -1,4 +1,4 @@
-"""Ролевая игра по мотивам настолки "Манчкин"."""
+"""Ролевая игра по мотивам настолки «Манчкин»."""
 import time
 import shelve
 
@@ -8,20 +8,16 @@ from termcolor import colored, cprint
 
 from functions import (
     animation, check_have_dagger, game_begins, playsound, save_dagger,
-    save_game, SAVES_PATH, save_health_value, save_race_klass, show_image,
+    save_game, SAVES_PATH, save_rank, save_race_klass, show_image,
     teleprint
 )
-from texts import colored_text as clr
-from texts import chapter_1
-from texts import chapter_2
-from texts import chapter_3
-from texts import chapter_4
-from texts import chapter_5
-from texts import chapter_6
-from texts import chapter_7
-from texts import chapter_8
-from texts import chapter_9
-from texts import character_creation
+from doors_game.main import run_doors_game
+import mini_game
+from texts import (
+    chapter_1, chapter_2, chapter_3, chapter_4, chapter_5, chapter_6,
+    chapter_7, chapter_8, chapter_9,
+    character_creation, colored_text as clr
+)
 from texts.intro import INTRO_1, INTRO_2
 
 just_fix_windows_console()  # use Colorama to make Termcolor work on Windows
@@ -565,16 +561,15 @@ def play_chapter_9():
     input(clr.PUSH_ENTER)
     print(chapter_9.G)
     input(clr.PUSH_ENTER)
-    import mini_game
     print(mini_game.RULES_1)
     input(clr.PUSH_ENTER)
     print(mini_game.RULES_2)
     input(clr.PUSH_ENTER)
-    wins, health = mini_game.start()
-    save_health_value(health)
+    rank = mini_game.start()
+    save_rank(rank)
     save_game('chapter_10')
     time.sleep(2)
-    print(chapter_9.H.format(wins, colored(f'{health} единиц', 'green')))
+    print(chapter_9.H.format(rank, colored(f'{rank} ранг', 'green')))
     input(clr.PUSH_ENTER)
 
 
