@@ -1,28 +1,26 @@
 """Основной файл для запуска игры."""
-from funcs import (
-    create_events, get_curse, get_treasure, prepare_game, run_away,
-    start_fight
-)
-import cards as item
 
 
 def run_doors_game(race, klass, level):
     '''Запускает прохождение уровней с дверями.'''
-    from cards import DIVINE_INTERDICTION
+    import cards as item
+    from funcs import (
+        create_events, get_curse, get_treasure, prepare_game, run_away,
+        start_fight
+    )
     from text import CHOOSE_DOOR
 
     character, monster_treasures, door_cards = prepare_game(
         race, klass, level
     )
-
     doors_indexes = {'слева': 0, 'центр': 1, 'справа': 2}
     for i, floor in enumerate(create_events(), 1):
         if hasattr(character, 'god') and character.god:
             character.god = False
-            print(DIVINE_INTERDICTION.after_use + f'{i}')
+            print(item.DIVINE_INTERDICTION.after_use + f'{i}')
             continue
         print(f'<-> <-> <-> <-> <-> Уровень №{i} <-> <-> <-> <-> <->')
-        while (result := input(CHOOSE_DOOR)) not in doors_indexes:
+        while (result := input(CHOOSE_DOOR).lower()) not in doors_indexes:
             pass
         event = floor[doors_indexes[result]]
         if event == 'monster':
@@ -52,13 +50,12 @@ def run_doors_game(race, klass, level):
     return True
 
 
-if __name__ == 'main':
-    race = 'Эльф'
-    # race = 'Дварф'
+if __name__ == '__main__':
+    # race = 'Эльф'
+    race = 'Дварф'
     # race = 'Халфлинг'
-    klass = 'Воин'
+    # klass = 'Воин'
     # klass = 'Клирик'
-    # klass = 'Волшебник'
+    klass = 'Волшебник'
     level = 0
-
     run_doors_game(race, klass, level)

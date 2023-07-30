@@ -43,11 +43,11 @@ def create_character(race, klass, level):
         kwargs['right_arm'] = weapon  # в левой руке базовое оружие
     if level >= 2:
         if klass == 'Воин':
-            special = item.DOPPLEGANGER
-            kwargs['doppleganger'] = True
+            special = item.SPIKY_KNEES
+            kwargs['knees'] = True
         elif klass == 'Волшебник':
-            special = item.POLLYMORPH_POTION
-            kwargs['pollymorph'] = True
+            special = item.FRIENDSHIP_POTION
+            kwargs['friendship'] = True
         elif klass == 'Клирик':
             special = item.WISHING_RING
             kwargs['wishing_ring'] = 1
@@ -131,9 +131,7 @@ def get_random_card(cards_set, show=True):
 def get_treasure(character, cards_set):
     '''Отрабатывает найденную шмотку при открытии свободной двери или после
     победы над монстром.'''
-def get_treasure(character, cards_set):
-    '''Отрабатывает найденную шмотку при открытии свободной двери или после
-    победы над монстром.'''
+    from cards import WISHING_RING
     from classes import Boost, Buff, Item
 
     card = get_random_card(cards_set)
@@ -148,19 +146,19 @@ def get_treasure(character, cards_set):
             setattr(character, card.kind, card)
             print(f'{have_item} заменено на {card}!')
     elif isinstance(card, Buff):
-        setattr(character, card.kind, True)
+        if card is WISHING_RING:
+            character.wishing_ring += 1
+        else:
+            setattr(character, card.kind, True)
     print(character)
 
 
-def get_curse(character, cards_set):
 def get_curse(character, cards_set):
     '''Отрабатывает открытие двери с проклятьем.'''
     from classes import Curse
     from cards import CHEAT, NO_ITEM
 
     card = get_random_card(cards_set)
-    if card.kind == 'tights':
-        print(CHEAT.after_use)
     if card.kind == 'tights':
         print(CHEAT.after_use)
     if card.kind == 'lose':
@@ -178,12 +176,7 @@ def get_curse(character, cards_set):
     else:
         lose = card.kind
         value = True
-    if (card is Curse and character.klass == 'Клирик'
-       and character.use_wishing_ring(lose, value)):
-        print('Ты используешь Хотельное кольцо: проклятье отменяется!')
-    else:
-        setattr(character, lose, value)  # в том числе для Бафа
-    if (card is Curse and character.klass == 'Клирик'
+    if (isinstance(card, Curse) and character.klass == 'Клирик'
        and character.use_wishing_ring(lose, value)):
         print('Ты используешь Хотельное кольцо: проклятье отменяется!')
     else:
@@ -191,16 +184,21 @@ def get_curse(character, cards_set):
     print(character)
 
 
-def action(character):
+def fight_command(character):
     '''Ввод команды игроком и проверка возможности её выполнения.'''
-    command = input('Введи команду "attack"/"strong"/"defence"/"boost" ')
-    if ((command == 'attack' and character.stamina < 10)
-       or (command == 'strong' and character.stamina < 20)):
-        print('Недостаточно выносливости!')
-        return True
-    if command == 'boost' and character.boost == 0:
-        print('Бустов пока нет. Применять нечего!')
-        return True
+    from text import COMBAT, COMBAT_CHECK
+
+    confirmed = False
+    while not confirmed:
+        while (command := input(COMBAT).lower()) not in COMBAT_CHECK:
+            pass
+        if ((command == 'атака' and character.stamina < 10)
+           or (command == 'тяжёлая атака' and character.stamina < 20)):
+            print('Недостаточно выносливости!')
+        elif command == 'бусты' and character.boost == 0:
+            print('Бустов пока нет. Применять нечего!')
+        else:
+            confirmed = True
     return command
 
 
@@ -214,7 +212,7 @@ def prepare_monster(character):
         character.illusion = False
         print(ILLUSION.after_use)
         return PLANT
-    return Monster('Ужасный монстр!', 1, 'Непобедимый', None)
+    return Monster('Ужасный монстр!', 100, 'Непобедимый', None)
 
 
 def wizard_spells(character):
@@ -231,8 +229,10 @@ def wizard_spells(character):
         f'У тебя есть специальные заклинания против монстров:{morph}{friend}'
         '\nМожешь воспользоваться, чтобы избежать боя!'
     )
-    while ((decision := input('Выбери: «Прогнать монстра» или «Бой»').lower())
-           not in ('прогнать монстра', 'бой')):
+    while (
+        (decision := input('Введи «Прогнать монстра» или «Бой» >>> ').lower())
+        not in ('прогнать монстра', 'бой')
+    ):
         pass
     if decision == 'бой':
         return False
@@ -245,26 +245,34 @@ def wizard_spells(character):
     return None
 
 
+def change_to_default(character):
+    '''После боя сбрасывает здоровье и выносливость персонажа к первоначальным
+    значениям. Убирает действие проклятий Смена пола и Кривое зеркало.'''
+    setattr(character, 'woman', False)
+    setattr(character, 'only_armor', False)
+    character.health = 100
+    character.stamina = 20
+
+
 def start_fight(character):
     '''Запускает битву персонажа с монстром.'''
     monster = prepare_monster(character)
     print(f'За дверью тебя встретил {monster}. Приготовься к битве!')
     if (character.klass == 'Волшебник'
-       and character.pollymorph or character.friendship):
-        if result := wizard_spells(character) is not False:
+       and (character.pollymorph or character.friendship)):
+        if (result := wizard_spells(character)) is not False:
             return result  # True или None
-    attacks = {'attack': character.attack,
-               'strong': character.strong_attack,
-               'boost': character.special}
+    attacks = {'атака': character.attack,
+               'тяжёлая атака': character.strong_attack,
+               'бусты': character.special}
     total_damage = 0
-    print('Сила шмоток >>>', character.strength())
+    print('Боевая сила >>>', character.strength())
     while True:
         print('Нанесено урона >>>', total_damage)
         print('Осталось жизней у монстра >>>', monster.health)
         print('Здоровье >>>', character.health)
         print('Выносливость >>>', character.stamina)
-        while (command := action(character)) is True:
-            pass
+        command = fight_command(character)
         if command in attacks:
             defence = 0
             damage = attacks[command]()
@@ -274,14 +282,12 @@ def start_fight(character):
             defence = character.defence()
         if monster.health <= 0:
             print('Ты победил!')
-            setattr(character.woman, False)
-            setattr(character.only_armor, False)
+            change_to_default(character)
             return True
         character.health -= monster.attack(defence)
         if character.health <= 0:
             print('Монстр победил!')
-            setattr(character.woman, False)
-            setattr(character.only_armor, False)
+            change_to_default(character)
             return False
 
 
@@ -326,7 +332,7 @@ def run_away(character):
     #     0: ..., 1: ..., 2: ..., 3: ..., 4: ..., 5: ..., 6: ...
     # }
     print(RUN_AWAY)
-    while input('Введи «Бросаю кубик»: ').lower() != 'бросаю кубик':
+    while input('Введи «Бросаю кубик» >>> ').lower() != 'бросаю кубик':
         pass
     dice = randint(1, 6)
     # show_image('На кубике выпало...', DICE_IMAGES[dice])

@@ -1,5 +1,6 @@
 """Игровые классы."""
 from random import randint
+from text import USE_RING
 
 
 class Card():
@@ -66,8 +67,8 @@ class Character():
         self.left_arm = left_arm
         self.right_arm = right_arm
         self.boost = 0  # разовый усилитель
-        self.title = False  # впечатляющий титул
-        self.invisibility = False  # зелье Невидимости
+        self.title = False  # Впечатляющий титул
+        self.invisibility = False  # Зелье невидимости
         self.only_armor = False  # проклятье Кривое зеркало
         self.woman = False  # проклятье Смена пола
         self.chicken = False  # проклятье Курица на башке
@@ -75,10 +76,10 @@ class Character():
     def items_strength(self):
         '''Рассчитывает силу шмоток персонажа.'''
         return sum(
-                (self.helmet.value, self.armor.value, self.footgear.value,
-                 self.left_arm.value, self.right_arm.value,
-                 3 if self.title else 0)
-            )
+            (self.helmet.value, self.armor.value, self.footgear.value,
+             self.left_arm.value, self.right_arm.value,
+             3 if self.title else 0)
+        )
 
     def strength(self):
         '''Рассчитывает итоговую силу персонажа с учётом проклятий.'''
@@ -93,7 +94,9 @@ class Character():
     def attack(self):
         '''Обычная атака противника.'''
         attack = self.DEFAULT_ATTACK + self.strength()
-        value = randint(self.MIN_RATIO * attack, self.MAX_RATIO * attack)
+        value = randint(
+            round(self.MIN_RATIO * attack), round(self.MAX_RATIO * attack)
+        )
         self.stamina -= 10
         print(f'Ты нанёс противнику урон, равный {value}.')
         return value
@@ -103,7 +106,9 @@ class Character():
         attack = (
             (self.DEFAULT_ATTACK + self.strength()) * self.STRONG_ATTACK_RATIO
         )
-        value = randint(self.MIN_RATIO * attack, self.MAX_RATIO * attack)
+        value = randint(
+            round(self.MIN_RATIO * attack), round(self.MAX_RATIO * attack)
+        )
         self.stamina -= 20
         print(f'Мощная атака нанесла противнику урон, равный {value}.')
         return value
@@ -111,7 +116,9 @@ class Character():
     def defence(self):
         '''Блокирование урона от атаки противника.'''
         defence = self.DEFAULT_DEFENCE + self.strength()
-        value = randint(self.MIN_RATIO * defence, self.MAX_RATIO * defence)
+        value = randint(
+            round(self.MIN_RATIO * defence), round(self.MAX_RATIO * defence)
+        )
         self.stamina += 10
         print(f'Защищаясь, ты блокировал {value} урона от монстра.')
         return value
@@ -131,11 +138,11 @@ class Character():
 class Warrior(Character):
     '''Класс Воин.'''
     def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
-                 doppleganger=False):
+                 knees=False):
         super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
         self.klass = 'Воин'
-        self.doppleganger = doppleganger
-        self.knees = False
+        self.knees = knees
+        self.doppleganger = False
         self.tights = False
 
     def items_strength(self):
@@ -154,6 +161,7 @@ class Warrior(Character):
             f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
             f'{self.left_arm}\n{self.right_arm}\n'
             f'Наколенники: {self.knees}\nКолготы: {self.tights}\n'
+            f'Титул: {self.title}\n'
             f'Боевая сила: {self.strength()}\n'
             f'Разовый усилитель: {self.boost}\n'
             f'Бафы:\nЗелье невидимости {self.invisibility}\n'
@@ -164,18 +172,19 @@ class Warrior(Character):
 class Wizard(Character):
     '''Класс Волшебник.'''
     def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
-                 pollymorph=False):
+                 friendship=False):
         super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
         self.klass = 'Волшебник'
-        self.pollymorph = pollymorph
+        self.friendship = friendship
+        self.pollymorph = False
         self.illusion = False
-        self.friendship = False
 
     def __str__(self):
         return (
             f'{self.race}-{self.klass}\n'
             f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
             f'{self.left_arm}\n{self.right_arm}\n'
+            f'Титул: {self.title}\n'
             f'Боевая сила: {self.strength()}\n'
             f'Разовый усилитель: {self.boost}\n'
             f'Бафы:\nЗелье невидимости {self.invisibility}\n'
@@ -196,21 +205,25 @@ class Cleric(Character):
 
     def use_wishing_ring(self, lose, value):
         '''Использовать Хотельное кольцо для отмены проклятья.'''
-        if (self.wishing_ring and getattr(self, lose) != value
-           and int(input('Использовать Хотельное кольцо? 0 или 1 '))):
-            self.wishing_ring -= 1
-            return False
-        return True
+        if self.wishing_ring and getattr(self, lose) != value:
+            while (decision := input(USE_RING).lower()) not in ('да', 'нет'):
+                pass
+            if decision == 'да':
+                self.wishing_ring -= 1
+                return True
+        return False
 
     def __str__(self):
         return (
             f'{self.race}-{self.klass}\n'
             f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
             f'{self.left_arm}\n{self.right_arm}\n'
+            f'Титул: {self.title}\n'
             f'Боевая сила: {self.strength()}\n'
             f'Разовый усилитель: {self.boost}\n'
             f'Бафы:\nЗелье невидимости {self.invisibility}\n'
-            f'Хотельное кольцо {self.wishing_ring}'
+            f'Хотельное кольцо {self.wishing_ring}\n'
+            f'GOD {self.god}'
         )
 
 
@@ -219,7 +232,7 @@ class Monster():
     DEFAULT_ATTACK = 10
     MIN_RATIO = 0.8  # коэффициенты минимального и максимального
     MAX_RATIO = 1.2  # пределов случайной величины урона
-    health = 100
+    health = 10
 
     def __init__(self, name, level, detail, image):
         self.name = name
@@ -234,9 +247,14 @@ class Monster():
     def attack(self, defence):
         '''Наносимый монстром урон с учётом его боевой силы и защиты игрока.'''
         strength = self.strength()
-        attack = randint(self.MIN_RATIO * strength, self.MAX_RATIO * strength)
+        attack = randint(
+            round(self.MIN_RATIO * strength), round(self.MAX_RATIO * strength)
+        )
         print(f'{self.name} атаковал с силой {attack}')
         damage = 0 if defence >= attack else attack - defence
         print(f'Блокировано {defence} урона от атаки монстра.\n'
               f'Получено повреждений {damage}')
         return damage
+
+    def __str__(self):
+        return f'{self.name} Уровень {self.level}'
