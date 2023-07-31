@@ -1,6 +1,10 @@
 """Игровые классы."""
 from random import randint
-from text import USE_RING
+
+from text import (
+    COMBAT_STRENGTH, DUPPEL, FRIENDSHIPcol, ILLUSIONcol, INVISIBILITY, MIRROR,
+    NAME, POLLYMORPHcol, RING, USE_RING, WOMAN
+)
 
 
 class Card():
@@ -59,8 +63,11 @@ class Character():
     stamina = 20  # выносливость
     health = 100
 
-    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm):
+    def __init__(
+        self, race, rank, helmet, armor, footgear, left_arm, right_arm
+    ):
         self.race = race
+        self.rank = rank
         self.helmet = helmet
         self.armor = armor
         self.footgear = footgear
@@ -77,16 +84,17 @@ class Character():
         '''Рассчитывает силу шмоток персонажа.'''
         return sum(
             (self.helmet.value, self.armor.value, self.footgear.value,
-             self.left_arm.value, self.right_arm.value,
-             3 if self.title else 0)
+             self.left_arm.value, self.right_arm.value)
         )
 
     def strength(self):
-        '''Рассчитывает итоговую силу персонажа с учётом проклятий.'''
+        '''Рассчитывает итоговую силу персонажа с учётом проклятий
+        и наличия титула.'''
+        strength = 3 if self.title else 0
         if self.only_armor:
-            strength = self.armor.value
+            strength += self.armor.value
         else:
-            strength = self.items_strength()
+            strength += self.items_strength()
         if self.woman:
             return strength - 5
         return strength
@@ -98,7 +106,7 @@ class Character():
             round(self.MIN_RATIO * attack), round(self.MAX_RATIO * attack)
         )
         self.stamina -= 10
-        print(f'Ты нанёс противнику урон, равный {value}.')
+        print(f'Противнику нанесён урон {value}.')
         return value
 
     def strong_attack(self):
@@ -110,8 +118,15 @@ class Character():
             round(self.MIN_RATIO * attack), round(self.MAX_RATIO * attack)
         )
         self.stamina -= 20
-        print(f'Мощная атака нанесла противнику урон, равный {value}.')
+        print(f'Мощная атака нанесла противнику урон {value}.')
         return value
+
+    def boost_attack(self):
+        '''Дальнобойная атака бустами.'''
+        print(f'Дальнобойная атака нанесла монстру {self.boost} урона. '
+              'Восстановлено 10 выносливости.')
+        self.stamina += 10
+        return self.boost
 
     def defence(self):
         '''Блокирование урона от атаки противника.'''
@@ -120,85 +135,127 @@ class Character():
             round(self.MIN_RATIO * defence), round(self.MAX_RATIO * defence)
         )
         self.stamina += 10
-        print(f'Защищаясь, ты блокировал {value} урона от монстра.')
+        print(f'Защита блокировала {value} урона от монстра.'
+              'Восстановлено 10 выносливости.')
         return value
 
-    def special(self):
-        '''Специальная атака с использованием буста.'''
-        print(
-            f'Дальнобойная атака бустами нанесла монстру {self.boost} урона.'
+    def show_weapon(self):
+        '''Отображает надетое вооружение персонажа и титул при наличии.'''
+        return (
+            'Реально впечатляющий титул [+3]\n' if self.title else ''
+            f'\tВооружение:\nГоловняк → {self.helmet}\nБроник → {self.armor}\n'
+            f'Обувка → {self.footgear}\nЛевая рука → {self.left_arm}\n'
+            f'Правая рука → {self.right_arm}\n'
         )
-        self.stamina += 10
-        return self.boost
+
+    def show_curses(self):
+        '''Отображает проклятия следующего боя.'''
+        return (
+            ('Действующие проклятия:' +
+             (f' {MIRROR}' if self.only_armor else '') +
+             (f' {WOMAN}' if self.woman else '') + '\n')
+            if self.only_armor or self.woman else ''
+        )
+
+    def show_boost(self):
+        '''Отображает бусты и Зелье невидимости при наличии.'''
+        return (
+            f'Дальнобойные бусты: {self.boost}\n' if self.boost else ''
+            f'{INVISIBILITY}\n' if self.invisibility else ''
+        )
 
     def __str__(self):
-        return 'Базовый класс.'
+        return f'{NAME} | Ранг: {self.rank} | Раса: {self.race} | '
 
 
 class Warrior(Character):
     '''Класс Воин.'''
-    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
-                 knees=False):
-        super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
+    def __init__(self, race, rank, helmet, armor, footgear, left_arm,
+                 right_arm, knees=False):
+        super().__init__(race, rank, helmet, armor, footgear, left_arm,
+                         right_arm)
         self.klass = 'Воин'
         self.knees = knees
         self.doppleganger = False
         self.tights = False
 
     def items_strength(self):
-        '''Рассчитывает силу шмоток персонажа. Переопределён от родительского с
-        добавлением колгот и наколенников. Учитывается Дупельгангер.'''
+        '''Рассчитывает силу шмоток персонажа. Переопределён от родительского
+        с добавлением колгот и наколенников. Учитывает Дупельгангер.'''
         return sum(
                 (self.helmet.value, self.armor.value, self.footgear.value,
                  self.left_arm.value, self.right_arm.value,
-                 3 if self.title else 0,
                  2 if self.knees else 0, 2 if self.tights else 0)
             ) * (2 if self.doppleganger else 1)
 
+    def show_unique(self):
+        '''Отображает уникальные шмотки для Воина.'''
+        return (
+            ('Колени → Шипастые коленки [+2]\n' if self.knees else '') +
+            ('Бёдра → Колготы [+2]\n' if self.tights else '') +
+            (f'{DUPPEL} (увеличивает силу шмоток в 2 раза)\n'
+             if self.doppleganger else '')
+        )
+
+    def line(self):
+        '''Отображает сплошную линию.'''
+        return (
+            '—' * (len(super().__str__() + f'Класс: {self.klass}\n') - 14) +
+            '\n'  # 14 это компенсация длины окрашеного имени персонажа
+        )
+
     def __str__(self):
         return (
-            f'{self.race}-{self.klass}\n'
-            f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
-            f'{self.left_arm}\n{self.right_arm}\n'
-            f'Наколенники: {self.knees}\nКолготы: {self.tights}\n'
-            f'Титул: {self.title}\n'
-            f'Боевая сила: {self.strength()}\n'
-            f'Разовый усилитель: {self.boost}\n'
-            f'Бафы:\nЗелье невидимости {self.invisibility}\n'
-            f'Дупельгангер {self.doppleganger}'
+            self.line() + super().__str__() + f'Класс: {self.klass}\n' +
+            self.line() + self.show_weapon() + self.show_unique() +
+            COMBAT_STRENGTH.format(self.strength()) + self.show_curses() +
+            self.show_boost()
         )
 
 
 class Wizard(Character):
     '''Класс Волшебник.'''
-    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
-                 friendship=False):
-        super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
+    def __init__(self, race, rank, helmet, armor, footgear, left_arm,
+                 right_arm, friendship=False):
+        super().__init__(race, rank, helmet, armor, footgear, left_arm,
+                         right_arm)
         self.klass = 'Волшебник'
         self.friendship = friendship
         self.pollymorph = False
         self.illusion = False
 
+    def show_unique(self):
+        '''Отображает уникальные способности Волшебника.'''
+        return (
+            ('Чародейство:' +
+             (f' {ILLUSIONcol}' if self.illusion else '') +
+             (f' {POLLYMORPHcol}' if self.pollymorph else '') +
+             (f' {FRIENDSHIPcol}' if self.friendship else '') + '\n')
+            if self.illusion or self.pollymorph or self.friendship else ''
+        )
+
+    def line(self):
+        '''Отображает сплошную линию.'''
+        return (
+            '—' * (len(super().__str__() + f'Класс: {self.klass}\n') - 14) +
+            '\n'  # 14 это компенсация длины окрашеного имени персонажа
+        )
+
     def __str__(self):
         return (
-            f'{self.race}-{self.klass}\n'
-            f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
-            f'{self.left_arm}\n{self.right_arm}\n'
-            f'Титул: {self.title}\n'
-            f'Боевая сила: {self.strength()}\n'
-            f'Разовый усилитель: {self.boost}\n'
-            f'Бафы:\nЗелье невидимости {self.invisibility}\n'
-            f'Морок {self.illusion}\n'
-            f'Попуморф {self.pollymorph}\n'
-            f'Зелье дружбы {self.friendship}'
+            self.line() + super().__str__() + f'Класс: {self.klass}\n' +
+            self.line() + self.show_weapon() + self.show_curses() +
+            COMBAT_STRENGTH.format(self.strength()) + self.show_boost()
+            + self.show_unique()
         )
 
 
 class Cleric(Character):
     '''Класс Клирик.'''
-    def __init__(self, race, helmet, armor, footgear, left_arm, right_arm,
-                 wishing_ring=0):
-        super().__init__(race, helmet, armor, footgear, left_arm, right_arm)
+    def __init__(self, race, rank, helmet, armor, footgear, left_arm,
+                 right_arm, wishing_ring=0):
+        super().__init__(race, rank, helmet, armor, footgear, left_arm,
+                         right_arm)
         self.klass = 'Клирик'
         self.wishing_ring = wishing_ring
         self.god = False
@@ -213,17 +270,20 @@ class Cleric(Character):
                 return True
         return False
 
+    def line(self):
+        '''Отображает сплошную линию.'''
+        return (
+            '—' * (len(super().__str__() + f'Класс: {self.klass}\n') - 14) +
+            '\n'  # 14 это компенсация длины окрашеного имени персонажа
+        )
+
     def __str__(self):
         return (
-            f'{self.race}-{self.klass}\n'
-            f'Вооружение:\n{self.helmet}\n{self.armor}\n{self.footgear}\n'
-            f'{self.left_arm}\n{self.right_arm}\n'
-            f'Титул: {self.title}\n'
-            f'Боевая сила: {self.strength()}\n'
-            f'Разовый усилитель: {self.boost}\n'
-            f'Бафы:\nЗелье невидимости {self.invisibility}\n'
-            f'Хотельное кольцо {self.wishing_ring}\n'
-            f'GOD {self.god}'
+            self.line() + super().__str__() + f'Класс: {self.klass}\n' +
+            self.line() + self.show_weapon() + self.show_curses() +
+            COMBAT_STRENGTH.format(self.strength()) + self.show_boost() +
+            (f'{RING} {self.wishing_ring} шт.\n'
+             if self.wishing_ring else '')
         )
 
 

@@ -1,6 +1,63 @@
 """Логика игры, сгруппированная в функциях."""
 
 
+def show_image(image_name: str, description: str) -> None:
+    """Показать окно с картинкой."""
+    import re
+    from pathlib import Path
+    import tkinter as tk
+
+    IMAGES_DIR = Path(__file__).resolve().parent / 'images/'
+    NO_IMAGE = ('Здесь должна была быть\nкрасивая картинка,\n'
+                'но её украли гномы...')
+
+    window = tk.Tk()
+    window.title('Манчкин RPG')
+    window.resizable(False, False)  # без регулировки размера
+    window.attributes('-topmost', True)  # на передний план
+    frame_1 = tk.Frame(master=window, bg='green')  # задний фон вокруг
+    frame_1.pack(fill=tk.X)                        # следующего лэйбла
+    label = tk.Label(
+        master=frame_1,
+        text=f'{description}',
+        font=('Comic Sans MS', 16, 'italic'),
+        foreground='white',
+        background='green'
+    )
+    label.pack()
+    try:
+        image = tk.PhotoImage(file=Path(IMAGES_DIR, f'{image_name}.png'))
+    except tk.TclError:
+        label = tk.Label(
+            master=window,
+            text=NO_IMAGE,
+            font='Gabriola 20'
+        )
+    else:
+        label = tk.Label(master=window, image=image)
+    label.pack()
+    # --- отображение окна по центру экрана ---
+    window.update_idletasks()
+    w, h, sx, sy = map(int, re.split('x|\+', window.winfo_geometry()))
+    sw = (window.winfo_rootx() - sx) * 2 + w
+    sh = (window.winfo_rooty() - sy) + (window.winfo_rootx() - sx) + h
+    sx = (window.winfo_screenwidth() - sw) // 2
+    sy = (window.winfo_screenheight() - sh) // 2
+    window.wm_geometry('+%d+%d' % (sx, sy))
+    # --- окончание ---
+    frame_2 = tk.Frame(master=window, bg='yellow')
+    frame_2.pack(fill=tk.X)
+    label = tk.Label(
+        master=frame_2,
+        text='Для продолжения закрой это окно',
+        font='Calibri 14',
+        foreground='black',
+        background='yellow'
+    )
+    label.pack()
+    window.mainloop()
+
+
 def create_events(floors=5, show=True):
     '''Создание схемы уровня со случайным расположением событий за дверями.'''
     from random import randint
@@ -18,7 +75,7 @@ def create_events(floors=5, show=True):
     return level_events
 
 
-def create_character(race, klass, level):
+def create_character(race, klass, rank):
     '''Создание персонажа и его экипировка в зависимости от уровня, расы
     и класса. Возвращает не использованные шмотки.'''
     from classes import Cleric, Warrior, Wizard
@@ -32,16 +89,16 @@ def create_character(race, klass, level):
         'left_arm': item.LONG_POLE,
         'right_arm': item.NO_ITEM
     }
-    if level >= 1:
+    if rank >= 1:
         if klass == 'Воин':
             weapon = item.SHIELD_UBIQUITY
         elif klass == 'Волшебник':
             weapon = item.STAFF_NAPALM
         elif klass == 'Клирик':
             weapon = item.MACE_SHARPNESS
-        item.treasures_for_level.remove(weapon)
+        item.treasures_for_rank.remove(weapon)
         kwargs['right_arm'] = weapon  # в левой руке базовое оружие
-    if level >= 2:
+    if rank >= 2:
         if klass == 'Воин':
             special = item.SPIKY_KNEES
             kwargs['knees'] = True
@@ -51,8 +108,8 @@ def create_character(race, klass, level):
         elif klass == 'Клирик':
             special = item.WISHING_RING
             kwargs['wishing_ring'] = 1
-        item.treasures_for_level.remove(special)
-    if level == 3:
+        item.treasures_for_rank.remove(special)
+    if rank == 3:
         if race == 'Эльф':
             stuff = item.HORNY_HELMET
             kwargs['helmet'] = stuff
@@ -62,11 +119,11 @@ def create_character(race, klass, level):
         elif race == 'Халфлинг':
             stuff = item.STEPLADDER
             kwargs['footgear'] = stuff
-        item.treasures_for_level.remove(stuff)
-    return klasses_set[klass](race, **kwargs), item.treasures_for_level
+        item.treasures_for_rank.remove(stuff)
+    return klasses_set[klass](race, rank, **kwargs), item.treasures_for_rank
 
 
-def prepare_game(race, klass, level, show=True):
+def prepare_game(race, klass, rank, show=True):
     '''Подготовка персонажа и стартовых наборов карт.'''
     from cards import (
         door_cards_base, door_cards_specific,
@@ -82,23 +139,24 @@ def prepare_game(race, klass, level, show=True):
         [staff for staff in monster_treasures_specific if staff.require
          in (race, klass)]
     )
-    character, rest_treasures_for_level = create_character(
-        race, klass, level
+    character, rest_treasures_for_rank = create_character(
+        race, klass, rank
     )
     # добавление шмоток и бафов, оставшихся после распределения уровней
     monster_treasures.extend(
-        [staff for staff in rest_treasures_for_level
+        [staff for staff in rest_treasures_for_rank
          if staff.require in (race, klass)]
     )
+    print(character)
     if show:
-        print(f'Уровень {level} |', character)
-        print('=' * 10)
-        print(f'Количество {len(monster_treasures)}:')
+        print('----- prepare_game func -----')
+        print(f'Всего {len(monster_treasures)}:')
         print(*monster_treasures, sep='\n')
         print('*' * 10)
-        print(f'Количество {len(door_cards)}:')
+        print(f'Всего {len(door_cards)}:')
         print(*door_cards, sep='\n')
         print('*' * 10)
+        print('----- end prepare_game func -----\n')
     return character, monster_treasures, door_cards
 
 
@@ -124,6 +182,7 @@ def get_random_card(cards_set, show=True):
     if len(cards_set) == 0:  # для сокровищ монстра
         cards_set.extend([PLUG, PLUG, PLUG])  # заглушки
     if show:
+        show_image(card.image, card)
         print(card)
     return card
 
@@ -159,8 +218,11 @@ def get_curse(character, cards_set):
     from cards import CHEAT, NO_ITEM
 
     card = get_random_card(cards_set)
-    if card.kind == 'tights':
+    if card.kind == 'cheat':
         print(CHEAT.after_use)
+        show_image(
+            'curses/tights', 'Колготы великанской силы: +2 к боевой силе!'
+        )
     if card.kind == 'lose':
         if card.lose not in ('min_arm', 'max_arm'):
             lose = card.lose
@@ -211,6 +273,7 @@ def prepare_monster(character):
     if character.klass == 'Волшебник' and character.illusion:
         character.illusion = False
         print(ILLUSION.after_use)
+        show_image(PLANT.image, PLANT.detail)
         return PLANT
     return Monster('Ужасный монстр!', 100, 'Непобедимый', None)
 
@@ -264,7 +327,7 @@ def start_fight(character):
             return result  # True или None
     attacks = {'атака': character.attack,
                'тяжёлая атака': character.strong_attack,
-               'бусты': character.special}
+               'бусты': character.boost_attack}
     total_damage = 0
     print('Боевая сила >>>', character.strength())
     while True:
@@ -355,3 +418,44 @@ def run_away(character):
             print(RUN_AWAY_BAD)
             return False
     return True
+
+
+def doors_progress(level, table, index, event, finish=False):
+    '''Отобразить текущий уровень и закрытые двери для выбора.
+    А так же результат уже пройденных уровней.'''
+    from prettytable import PrettyTable, DOUBLE_BORDER
+    from termcolor import colored
+
+    CLOSED_DOOR = '▓▓▓▓▓▓\n▓▓▒▒▓▓\n▓▓▓▓▓▓\n▓▓▓▓▓▓\n───────'
+    CLOSED_DOORS = [CLOSED_DOOR, CLOSED_DOOR, CLOSED_DOOR]
+    CURRENT_LEVEl = [f'Уровень\n« {level} »\n\n\n───────', *CLOSED_DOORS]
+    OPENED_CURSE = '┌────┐\n │ПРОК│\n │ ЛЯТ│\n└────┘\n───────'
+    OPENED_FREE = '┌────┐\n │СВО │\n │ БОД│\n└────┘\n───────'
+    OPENED_MONSTER = '┌────┐\n │МОН │\n │ СТР│\n└────┘\n───────'
+    OPENED_DOORS = {'monster': OPENED_MONSTER,
+                    'curse': OPENED_CURSE,
+                    'free': OPENED_FREE}
+    PASSED = colored('пройден', 'green', attrs=['bold'])
+    TITLE = ['', colored('СЛЕВА', 'blue', attrs=['bold']),
+             colored('ЦЕНТР', 'blue', attrs=['bold']),
+             colored('СПРАВА', 'blue', attrs=['bold'])]
+
+    if level == 1:
+        table = PrettyTable()
+        table.set_style(DOUBLE_BORDER)
+        table.field_names = TITLE
+        table.add_row(CURRENT_LEVEl)
+        print(table)
+        return table[:0]  # возврат только заголовка
+    closed_doors = CLOSED_DOORS.copy()
+    closed_doors.pop(index)
+    closed_doors.insert(index, OPENED_DOORS[event])
+    table.add_row(
+        [f'Уровень\n« {level - 1} »\n' + PASSED + '\n\n───────', *closed_doors]
+    )
+    if finish:
+        print(table)
+        return
+    table.add_row(CURRENT_LEVEl)
+    print(table)
+    return table[:-1]

@@ -2,8 +2,6 @@
 from pathlib import Path
 
 SAVES_PATH = str(Path(__file__).resolve().parent / 'saves/game_progress')
-IMAGES_DIR = Path(__file__).resolve().parent / 'images/'
-NO_IMAGE = 'Здесь должна была быть\nкрасивая картинка,\nно её украли гномы...'
 
 
 def teleprint(*args, delay=0.05, str_join=' ') -> None:
@@ -36,6 +34,10 @@ def show_image(image_name: str, description: str) -> None:
     """Показать окно с картинкой."""
     import re
     import tkinter as tk
+
+    IMAGES_DIR = Path(__file__).resolve().parent / 'images/'
+    NO_IMAGE = ('Здесь должна была быть\nкрасивая картинка,\n'
+                'но её украли гномы...')
 
     window = tk.Tk()
     window.title('Манчкин RPG')

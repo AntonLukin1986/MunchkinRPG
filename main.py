@@ -576,9 +576,9 @@ def play_chapter_9():
 def play_chapter_10():
     """... ."""
     cprint('§ ...', 'black', attrs=['bold'])
-    if run_doors_game() is False:
-        return start_game()  # перезагрузка, если съел монстр в дверях
-    print('Поздравляю, тебе удалось пройти все уровни!')
+    # if run_doors_game() is False:
+    #     return start_game()  # перезагрузка, если съел монстр в дверях
+    # print('Поздравляю, тебе удалось пройти все уровни!')
 
 
 if __name__ == '__main__':

@@ -1,28 +1,32 @@
 """Основной файл для запуска игры."""
 
 
-def run_doors_game(race, klass, level):
+def run_doors_game(race, klass, rank):
     '''Запускает прохождение уровней с дверями.'''
     import cards as item
     from funcs import (
-        create_events, get_curse, get_treasure, prepare_game, run_away,
-        start_fight
+        create_events, doors_progress, get_curse, get_treasure, prepare_game,
+        run_away, show_image, start_fight
     )
-    from text import CHOOSE_DOOR
+    from text import CHOOSE_DOOR, DOORS_INDEXES
 
+    table = None
+    index = None
+    event = None
     character, monster_treasures, door_cards = prepare_game(
-        race, klass, level
+        race, klass, rank
     )
-    doors_indexes = {'слева': 0, 'центр': 1, 'справа': 2}
-    for i, floor in enumerate(create_events(), 1):
+    for level, floor in enumerate(create_events(), 1):
         if hasattr(character, 'god') and character.god:
             character.god = False
-            print(item.DIVINE_INTERDICTION.after_use + f'{i}')
+            print(item.DIVINE_INTERDICTION.after_use + f'{level}')
             continue
-        print(f'<-> <-> <-> <-> <-> Уровень №{i} <-> <-> <-> <-> <->')
-        while (result := input(CHOOSE_DOOR).lower()) not in doors_indexes:
+        # show_image('levels/level_1', 'Сейчас ты находишься на...')
+        table = doors_progress(level, table, index, event)
+        while (choice := input(CHOOSE_DOOR).lower()) not in DOORS_INDEXES:
             pass
-        event = floor[doors_indexes[result]]
+        index = DOORS_INDEXES[choice]
+        event = floor[index]
         if event == 'monster':
             result = start_fight(character)
             if result is True:  # победил в битве или использовал попуморфа
@@ -34,8 +38,8 @@ def run_doors_game(race, klass, level):
             get_curse(character, door_cards)
         elif event == 'free':
             get_treasure(character, item.free_room_treasures)
+    doors_progress(level + 1, table, index, event, finish=True)
     # ####################################################################
-    print('^' * 10)
     print('*' * 10)
     print(f'Осталось сокровищ монстров {len(monster_treasures)}:')
     print(*monster_treasures, sep='\n')
@@ -51,11 +55,11 @@ def run_doors_game(race, klass, level):
 
 
 if __name__ == '__main__':
-    # race = 'Эльф'
-    race = 'Дварф'
+    race = 'Эльф'
+    # race = 'Дварф'
     # race = 'Халфлинг'
-    # klass = 'Воин'
+    klass = 'Воин'
     # klass = 'Клирик'
-    klass = 'Волшебник'
-    level = 0
-    run_doors_game(race, klass, level)
+    # klass = 'Волшебник'
+    rank = 0
+    run_doors_game(race, klass, rank)
