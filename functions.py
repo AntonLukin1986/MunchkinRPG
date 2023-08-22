@@ -1,5 +1,6 @@
 """Модуль с дополнительными функциями для игры."""
 from pathlib import Path
+from typing import Union
 
 SAVES_PATH = str(Path(__file__).resolve().parent / 'saves/game_progress')
 
@@ -149,11 +150,11 @@ def animation(screen) -> None:
     screen.play(scenes, stop_on_resize=True)
 
 
-def playsound(filename: str) -> None:
+def playsound(filename: str, sync=False) -> None:
     '''Проигрывание звуков в игре.'''
     from playsound import playsound
     MP3_PATH = str(Path(__file__).resolve().parent / f'mp3/{filename}.mp3')
-    playsound(MP3_PATH, False)  # False - выполнять асинхронно
+    playsound(MP3_PATH, sync)  # False - выполнять асинхронно
 
 
 def save_dagger(have_dagger: bool) -> None:
@@ -172,12 +173,13 @@ def check_have_dagger() -> bool:
         return bool(db['HAVE_DAGGER'])
 
 
-def save_race_klass(race_klass: str) -> None:
+def save_race_klass(race: str, klass: str) -> None:
     """Сохранение информации о расе и классе персонажа."""
     import shelve
 
     with shelve.open(SAVES_PATH) as db:
-        db['RACE_KLASS'] = race_klass  # строка в формате "Раса-Класс"
+        db['RACE'] = race
+        db['KLASS'] = klass
 
 
 def save_rank(rank: int) -> None:
@@ -186,3 +188,14 @@ def save_rank(rank: int) -> None:
 
     with shelve.open(SAVES_PATH) as db:
         db['RANK'] = rank
+
+
+def load_race_klass_rank() -> Union[str, str, int]:
+    """Получение данных о расе, классе и ранге персонажа."""
+    import shelve
+
+    with shelve.open(SAVES_PATH) as db:
+        race = db['RACE']
+        klass = db['KLASS']
+        rank = db['RANK']
+    return race, klass, int(rank)

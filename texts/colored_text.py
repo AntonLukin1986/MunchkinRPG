@@ -1,11 +1,12 @@
 """Цветные (и не только) слова и фразы для импорта."""
 from termcolor import colored
 
-RACES = {'а': 'Эльф', 'б': 'Дварф', 'в': 'Халфлинг'}
+RACES = {'а': 'Эльф', 'б': 'Дварф', 'в': 'Хафлинг'}
 KLASSES = {'а': 'Воин', 'б': 'Волшебник', 'в': 'Клирик'}
 FILES_RACES = {'а': 'elf', 'б': 'dvarf', 'в': 'halfling'}
 FILES_CLASSES = {'а': 'warrior', 'б': 'wizard', 'в': 'cleric'}
 
+AGAIN_OR_TESTS = colored('Попробовать ещё раз  (введи 1)\nПоменять персонажа (вернуться в главу с тестами)  (введи 2)', 'blue')
 ATTENTION = '''{attention} В игре тебе потребуется вводить различный текст.
 Кнопка {enter} служит для подтверждения ввода.
 Руководствуйся подсказками на экране!
@@ -26,7 +27,7 @@ ANSWER_OPTION = colored('Введи один вариант ответа >>> ', 
 ATAS = colored('Введи фразу активации плаща "Атас, меня спалили!" >>> ', 'blue')
 CHAR_DESCR = colored('Введи описание персонажа >>> ', 'blue')
 CHOICE = colored('Сделай выбор 1 или 2 >>> ', 'blue')
-FORGIVE_ME = colored('Введи "Простите меня, я больше так не буду!" >>> ', 'blue')
+FORGIVE_ME = colored('Введи "Простите меня, я больше так не буду" >>> ', 'blue')
 PRINT_NAME = colored('Придумай и напиши имя для персонажа >>> ', 'blue')
 ROLL_DICE = colored('Введи "бросаю кубик" >>> ', 'blue')
 SHOW_DAGGER = colored('Введи "Отдать кинжал" >>> ', 'blue')
@@ -40,6 +41,7 @@ BONES_BROTHERS = colored('Бледные братья', 'red')
 CHAR_NAME = colored('Знатный Вонючка', 'yellow')
 CHEET_DICE = colored('Читерский кубик', 'green')
 CLOAK = colored('Плащ замутнённости', 'green')
+CTHULHU = colored('Великий и Ужасный Ктулху', 'red')
 DAGGER = colored('Кинжал измены', 'green')
 DEAD_HORSE = colored('Конь Андедный', 'red')
 DUCKBILL = colored('Утконтикора', 'red')
@@ -56,4 +58,5 @@ OCTAEDRON = colored('Желатиновый октаэдр', 'red')
 PRINCESS = colored('Ариэлла', 'yellow')
 RAT_ON_STICK = colored('Крыса на палочке', 'green')
 STINK_POTION = colored('Зелье ротовой вони', 'green')
+THE_END = colored('Игра создана по мотивам настолки «Манчкин» её преданным поклонником shahter86\nКонец!', 'green')
 WALL = colored('Стенка-мгновенка', 'green')

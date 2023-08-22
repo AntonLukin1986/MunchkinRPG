@@ -58,7 +58,7 @@ def show_image(image_name: str, description: str) -> None:
     window.mainloop()
 
 
-def create_events(floors=5, show=True):
+def create_events(floors=10, show=True):
     '''Создание схемы уровня со случайным расположением событий за дверями.'''
     from random import randint
 
@@ -70,17 +70,22 @@ def create_events(floors=5, show=True):
         for _ in range(3):
             floor.append(events.pop(randint(0, len(events) - 1)))
     if show:
+        print('*' * 10)
         for floor in level_events:
             print(floor)
+        print('*' * 10)
     return level_events
 
 
 def create_character(race, klass, rank):
     '''Создание персонажа и его экипировка в зависимости от уровня, расы
     и класса. Возвращает не использованные шмотки.'''
-    from classes import Cleric, Warrior, Wizard
-    import cards as item
+    import doors_game.cards as item
+    from doors_game.cards import treasures_for_rank
+    from doors_game.classes import Cleric, Warrior, Wizard
+    from doors_game.text import PUSH_ENTER
 
+    treasures_for_rank = treasures_for_rank.copy()
     klasses_set = {'Воин': Warrior, 'Волшебник': Wizard, 'Клирик': Cleric}
     kwargs = {  # экипировка при уровне персонажа 0
         'helmet': item.HELM_COURAGE,
@@ -89,6 +94,12 @@ def create_character(race, klass, rank):
         'left_arm': item.LONG_POLE,
         'right_arm': item.NO_ITEM
     }
+    print('Персонаж нулевого ранга обладает следующей экипировкой...')
+    input(PUSH_ENTER)
+    for stuff in [
+        item.HELM_COURAGE, item.SLIMY_ARMOR, item.SANDALS, item.LONG_POLE
+    ]:
+        show_image(stuff.image, stuff)
     if rank >= 1:
         if klass == 'Воин':
             weapon = item.SHIELD_UBIQUITY
@@ -96,8 +107,12 @@ def create_character(race, klass, rank):
             weapon = item.STAFF_NAPALM
         elif klass == 'Клирик':
             weapon = item.MACE_SHARPNESS
-        item.treasures_for_rank.remove(weapon)
+        treasures_for_rank.remove(weapon)
         kwargs['right_arm'] = weapon  # в левой руке базовое оружие
+        print(f'За первый ранг дополнительно получаешь особое оружие {klass}а '
+              f'- {weapon}.')
+        input(PUSH_ENTER)
+        show_image(weapon.image, weapon)
     if rank >= 2:
         if klass == 'Воин':
             special = item.SPIKY_KNEES
@@ -108,7 +123,10 @@ def create_character(race, klass, rank):
         elif klass == 'Клирик':
             special = item.WISHING_RING
             kwargs['wishing_ring'] = 1
-        item.treasures_for_rank.remove(special)
+        treasures_for_rank.remove(special)
+        print(f'За второй ранг держи {special}.')
+        input(PUSH_ENTER)
+        show_image(special.image, special)
     if rank == 3:
         if race == 'Эльф':
             stuff = item.HORNY_HELMET
@@ -116,25 +134,30 @@ def create_character(race, klass, rank):
         elif race == 'Дварф':
             stuff = item.SHORT_WIDE_ARMOR
             kwargs['armor'] = stuff
-        elif race == 'Халфлинг':
+        elif race == 'Хафлинг':
             stuff = item.STEPLADDER
             kwargs['footgear'] = stuff
-        item.treasures_for_rank.remove(stuff)
-    return klasses_set[klass](race, rank, **kwargs), item.treasures_for_rank
+        treasures_for_rank.remove(stuff)
+        print(f'За третий ранг уникальный для {race}а {stuff} заменит '
+              'стандартный элемент экипировки.')
+        input(PUSH_ENTER)
+        show_image(stuff.image, stuff)
+    return klasses_set[klass](race, rank, **kwargs), treasures_for_rank
 
 
 def prepare_game(race, klass, rank, show=True):
     '''Подготовка персонажа и стартовых наборов карт.'''
-    from cards import (
+    from doors_game.cards import (
         door_cards_base, door_cards_specific,
+        free_room_treasures,
         monster_treasures_base, monster_treasures_specific
     )
 
-    door_cards = door_cards_base
+    door_cards = door_cards_base.copy()
     door_cards.extend(
         [card for card in door_cards_specific if card.require == klass]
     )
-    monster_treasures = monster_treasures_base
+    monster_treasures = monster_treasures_base.copy()
     monster_treasures.extend(
         [staff for staff in monster_treasures_specific if staff.require
          in (race, klass)]
@@ -147,17 +170,19 @@ def prepare_game(race, klass, rank, show=True):
         [staff for staff in rest_treasures_for_rank
          if staff.require in (race, klass)]
     )
-    print(character)
+    free_treasures = free_room_treasures.copy()
     if show:
-        print('----- prepare_game func -----')
-        print(f'Всего {len(monster_treasures)}:')
+        print('----- before game -----')
+        print(f'Всего сокровищ монстров {len(monster_treasures)}:')
         print(*monster_treasures, sep='\n')
         print('*' * 10)
-        print(f'Всего {len(door_cards)}:')
+        print(f'Всего карт дверей {len(door_cards)}:')
         print(*door_cards, sep='\n')
         print('*' * 10)
-        print('----- end prepare_game func -----\n')
-    return character, monster_treasures, door_cards
+        print(f'Всего свободных сокровищ {len(free_treasures)}:')
+        print(*free_treasures, sep='\n')
+        print('----- before game -----\n')
+    return character, monster_treasures, door_cards, free_treasures
 
 
 def weak_or_strong_arm(char, weak=True):
@@ -176,22 +201,27 @@ def weak_or_strong_arm(char, weak=True):
 def get_random_card(cards_set, show=True):
     '''Перемещает случайную карту из набора в игру.'''
     from random import randint
-    from cards import PLUG
+    from doors_game.cards import PLUG
 
-    card = cards_set.pop(randint(0, len(cards_set)-1))
     if len(cards_set) == 0:  # для сокровищ монстра
         cards_set.extend([PLUG, PLUG, PLUG])  # заглушки
+    card = cards_set.pop(randint(0, len(cards_set)-1))
+    show_image(card.image, card)
     if show:
-        show_image(card.image, card)
         print(card)
+        print('*' * 10)
+        print(f'Осталось в наборе {len(cards_set)}:')
+        print(*cards_set, sep='\n')
+        print('*' * 10)
     return card
 
 
 def get_treasure(character, cards_set):
     '''Отрабатывает найденную шмотку при открытии свободной двери или после
     победы над монстром.'''
-    from cards import WISHING_RING
-    from classes import Boost, Buff, Item
+    from doors_game.cards import WISHING_RING
+    from doors_game.classes import Boost, Buff, Item
+    from doors_game.text import WEAK_ITEM
 
     card = get_random_card(cards_set)
     if isinstance(card, Boost):
@@ -201,28 +231,32 @@ def get_treasure(character, cards_set):
             # определяется, в какой руке самое слабое оружие
             card.kind = weak_or_strong_arm(character)
         have_item = getattr(character, card.kind)
-        if have_item.value <= card.value:
+        if have_item.value < card.value:
             setattr(character, card.kind, card)
-            print(f'{have_item} заменено на {card}!')
+            print(f'{have_item} заменено на {card}')
+        else:
+            print(WEAK_ITEM.format(card))
+            character.boost += card.value
     elif isinstance(card, Buff):
         if card is WISHING_RING:
             character.wishing_ring += 1
         else:
             setattr(character, card.kind, True)
-    print(character)
 
 
 def get_curse(character, cards_set):
     '''Отрабатывает открытие двери с проклятьем.'''
-    from classes import Curse
-    from cards import CHEAT, NO_ITEM
+    from doors_game.classes import Curse
+    from doors_game.cards import CHEAT, NO_ITEM, TIGHTS
+    from doors_game.text import PUSH_ENTER
 
     card = get_random_card(cards_set)
     if card.kind == 'cheat':
+        character.tights = True
         print(CHEAT.after_use)
-        show_image(
-            'curses/tights', 'Колготы великанской силы: +2 к боевой силе!'
-        )
+        input(PUSH_ENTER)
+        show_image(TIGHTS.image, TIGHTS.description)
+        return
     if card.kind == 'lose':
         if card.lose not in ('min_arm', 'max_arm'):
             lose = card.lose
@@ -235,52 +269,68 @@ def get_curse(character, cards_set):
             else:
                 lose = strong_arm
         value = NO_ITEM
+        to_lose = getattr(character, lose)
+        if to_lose is not NO_ITEM:
+            print(f'Ты вынужден потерять {to_lose}')
+            input(PUSH_ENTER)
+            show_image(f'{to_lose.image}', 'Попрощайся с этой шмоткой')
+        else:
+            print('Терять нечего - проклятье не подействовало!')
+            input(PUSH_ENTER)
+            return
     else:
         lose = card.kind
         value = True
     if (isinstance(card, Curse) and character.klass == 'Клирик'
        and character.use_wishing_ring(lose, value)):
         print('Ты используешь Хотельное кольцо: проклятье отменяется!')
-    else:
-        setattr(character, lose, value)  # в том числе для Бафа
-    print(character)
+        input(PUSH_ENTER)
+        return
+    setattr(character, lose, value)  # в том числе для Бафа
+    if card.kind != 'lose':
+        input(PUSH_ENTER)
 
 
 def fight_command(character):
     '''Ввод команды игроком и проверка возможности её выполнения.'''
-    from text import COMBAT, COMBAT_CHECK
+    from doors_game.text import COMBAT, COMBAT_CHECK
 
     confirmed = False
     while not confirmed:
         while (command := input(COMBAT).lower()) not in COMBAT_CHECK:
             pass
         if ((command == 'атака' and character.stamina < 10)
-           or (command == 'тяжёлая атака' and character.stamina < 20)):
+           or (command == 'мощная' and character.stamina < 20)):
             print('Недостаточно выносливости!')
-        elif command == 'бусты' and character.boost == 0:
-            print('Бустов пока нет. Применять нечего!')
+        elif command == 'дальняя' and character.boost == 0:
+            print('Бустов пока нет - применять нечего!')
         else:
             confirmed = True
     return command
 
 
-def prepare_monster(character):
+def prepare_monster(level, character):
     '''Подготавливает монстра для битвы.'''
-    from classes import Monster
-    from cards import ILLUSION
-    from monsters import PLANT
+    from random import choice
+    from doors_game.cards import ILLUSION
+    from doors_game.monsters import MONSTERS, PLANT
+    from doors_game.text import PUSH_ENTER
 
     if character.klass == 'Волшебник' and character.illusion:
         character.illusion = False
+        monster = PLANT
         print(ILLUSION.after_use)
-        show_image(PLANT.image, PLANT.detail)
-        return PLANT
-    return Monster('Ужасный монстр!', 100, 'Непобедимый', None)
+        input(PUSH_ENTER)
+    else:
+        monster = choice(MONSTERS[level])
+    show_image(monster.image, monster.detail)
+    return monster
 
 
 def wizard_spells(character):
     '''Предоставление волшебнику возможности усмирить монстра вместо боя.'''
-    from cards import POLLYMORPH_POTION, FRIENDSHIP_POTION
+    from doors_game.cards import POLLYMORPH_POTION, FRIENDSHIP_POTION
+    from doors_game.text import PUSH_ENTER, SPELL_CHOSE
 
     morph = (
         '\n' + POLLYMORPH_POTION.description if character.pollymorph else ''
@@ -289,75 +339,140 @@ def wizard_spells(character):
         '\n' + FRIENDSHIP_POTION.description if character.friendship else ''
     )
     print(
-        f'У тебя есть специальные заклинания против монстров:{morph}{friend}'
+        f'У тебя есть заклинания для усмирения монстров:{morph}{friend}'
         '\nМожешь воспользоваться, чтобы избежать боя!'
     )
     while (
-        (decision := input('Введи «Прогнать монстра» или «Бой» >>> ').lower())
+        (decision := input(SPELL_CHOSE).lower())
         not in ('прогнать монстра', 'бой')
     ):
         pass
+    print()
     if decision == 'бой':
         return False
     if character.pollymorph:  # в приоритете первым используется Попуморф
         character.pollymorph = False
         print(POLLYMORPH_POTION.after_use)
+        input(PUSH_ENTER)
         return True
     character.friendship = False
     print(FRIENDSHIP_POTION.after_use)
+    input(PUSH_ENTER)
     return None
 
 
 def change_to_default(character):
     '''После боя сбрасывает здоровье и выносливость персонажа к первоначальным
-    значениям. Убирает действие проклятий Смена пола и Кривое зеркало.'''
+    значениям. Убирает проклятья следующего боя.'''
     setattr(character, 'woman', False)
     setattr(character, 'only_armor', False)
-    character.health = 100
-    character.stamina = 20
+    health = {'Эльф': 110, 'Дварф': 90, 'Хафлинг': 100}
+    character.health = health[character.race]
+    character.stamina = 10
 
 
-def start_fight(character):
+def show_statistics(character, monster) -> None:
+    '''Отображение статистики во время боя.'''
+    from termcolor import colored, cprint
+    from doors_game.text import NAME
+    total_power = character.strength()
+    print(NAME, '¶', f'Боевая сила {total_power}')
+    min_attack = round(character.MIN_RATIO * total_power)
+    max_attack = round(character.MAX_RATIO * total_power)
+    print(f'Атака: {min_attack}-{max_attack} '
+          f'(-10 выносливости | блокирует {character.items_strength()} урона)')
+    min_hard = round(
+        total_power * character.STRONG_ATTACK_RATIO *
+        character.MIN_STRONG_RATIO
+    )
+    max_hard = round(
+        total_power * character.STRONG_ATTACK_RATIO *
+        character.MAX_STRONG_RATIO
+    )
+    print(f'Мощная: {min_hard}-{max_hard} (-20 выносливости)')
+    min_defence = round(character.MIN_RATIO * total_power)
+    max_defence = round(character.MAX_RATIO * total_power)
+    print(f'Защита: блокирует {min_defence}-{max_defence} '
+          'урона (+10 выносливости)')
+    print(f'Дальнобойная: {character.boost} (+10 выносливости)')
+    print(
+        colored('► Выносливость', attrs=['bold']) + f' [{character.stamina}]'
+    )
+    if character.health <= 20:
+        color = 'red'
+    elif character.health <= 50:
+        color = 'yellow'
+    else:
+        color = 'green'
+    print(colored('► Здоровье', attrs=['bold']) +
+          colored(f' [{character.health}]', color))
+    print('><' * 15)
+    cprint(monster.name, 'red', attrs=['bold'], end=' ¶ ')
+    print(f'Боевая сила {monster.strength()}')
+    min_damage = round(monster.MIN_RATIO * monster.strength())
+    max_damage = round(monster.MAX_RATIO * monster.strength())
+    print(f'Наносимый урон: {min_damage}-{max_damage}')
+    if monster.health <= 20:
+        color = 'red'
+    elif monster.health <= 50:
+        color = 'yellow'
+    else:
+        color = 'green'
+    print(colored('► Здоровье', attrs=['bold']) +
+          colored(f' [{monster.health}]', color))
+
+
+def start_fight(level, character):
     '''Запускает битву персонажа с монстром.'''
-    monster = prepare_monster(character)
-    print(f'За дверью тебя встретил {monster}. Приготовься к битве!')
+    from termcolor import colored
+    from doors_game.text import MONSTER_DEAD, MONSTER_WIN, PUSH_ENTER
+
+    monster = prepare_monster(level, character)
+    print(
+        f'Ты столкнулся с {colored(monster, "red")}. Приготовься к битве!',
+        '\n'
+    )
     if (character.klass == 'Волшебник'
        and (character.pollymorph or character.friendship)):
         if (result := wizard_spells(character)) is not False:
             return result  # True или None
     attacks = {'атака': character.attack,
-               'тяжёлая атака': character.strong_attack,
-               'бусты': character.boost_attack}
-    total_damage = 0
-    print('Боевая сила >>>', character.strength())
+               'мощная': character.strong_attack,
+               'дальняя': character.boost_attack}
     while True:
-        print('Нанесено урона >>>', total_damage)
-        print('Осталось жизней у монстра >>>', monster.health)
-        print('Здоровье >>>', character.health)
-        print('Выносливость >>>', character.stamina)
+        show_statistics(character, monster)
+        print()
         command = fight_command(character)
+        print()
         if command in attacks:
-            defence = 0
+            defence = character.items_strength() if command == 'атака' else 0
             damage = attacks[command]()
-            total_damage += damage
             monster.health -= damage
         else:
             defence = character.defence()
         if monster.health <= 0:
-            print('Ты победил!')
+            input(PUSH_ENTER)
             change_to_default(character)
+            print(MONSTER_DEAD)
+            input(PUSH_ENTER)
+            monster.health = 100
             return True
         character.health -= monster.attack(defence)
         if character.health <= 0:
-            print('Монстр победил!')
+            input(PUSH_ENTER)
             change_to_default(character)
+            print(MONSTER_WIN)
+            input(PUSH_ENTER)
+            monster.health = 100
             return False
+        input(PUSH_ENTER)
 
 
 def monster_get_item(character):
     '''Монстр забирает случайную шмотку при неудачной смывке.'''
     from random import choice
-    from cards import NO_ITEM
+    from doors_game.cards import NO_ITEM, SPIKY_KNEES, TIGHTS
+    from doors_game.text import PUSH_ENTER
 
     item_types = [
         'helmet', 'armor', 'footgear', 'left_arm', 'right_arm',
@@ -366,18 +481,26 @@ def monster_get_item(character):
     if character.klass != 'Воин':
         item_types.remove('knees')
         item_types.remove('tights')
-    for type_ in item_types:
+    for type_ in item_types.copy():
         stuff = getattr(character, type_)
         if stuff is False or stuff is NO_ITEM:
             item_types.remove(type_)
-    print('Имеющиеся шмотки: ', item_types)
     if item_types:
         lose_type = choice(item_types)
         if lose_type in ('knees', 'tights'):
             new_value = False
         else:
             new_value = NO_ITEM
-        print(f'Ты потерял {getattr(character, lose_type)}.')
+        # для отображения информации
+        if lose_type == 'knees':
+            to_lose = SPIKY_KNEES
+        elif lose_type == 'tights':
+            to_lose = TIGHTS
+        else:
+            to_lose = getattr(character, lose_type)
+        print(f'Ты потерял: {to_lose}')
+        input(PUSH_ENTER)
+        show_image(f'{to_lose.image}', 'Попрощайся с этой шмоткой')
         setattr(character, lose_type, new_value)
     else:
         print('Так как экипировки у тебя нет, то пришлось сбросить штаны... ')
@@ -385,37 +508,45 @@ def monster_get_item(character):
 
 def run_away(character):
     '''Смывка при поражении в бою с монстром.'''
+    from pathlib import Path
+    from playsound import playsound
     from random import randint
-
-    from text import (
-        RUN_AWAY, RUN_AWAY_BAD, RUN_AWAY_OK, RUN_AWAY_SO_SO, USE_INVISIBLE
+    from doors_game.cards import INVISIBILITY_POTION
+    from doors_game.text import (
+        DICE, RUN_AWAY, PUSH_ENTER, RUN_AWAY_BAD, RUN_AWAY_OK, RUN_AWAY_SO_SO
     )
-
-    # DICE_IMAGES = {
-    #     0: ..., 1: ..., 2: ..., 3: ..., 4: ..., 5: ..., 6: ...
-    # }
+    MP3_PATH = str(Path(__file__).resolve().parent.parent / 'mp3/dice.mp3')
+    DICE_IMAGES = {1: 'dice_one', 2: 'dice_two', 3: 'dice_three',
+                   4: 'dice_four', 5: 'dice_five', 6: 'dice_six'}
     print(RUN_AWAY)
-    while input('Введи «Бросаю кубик» >>> ').lower() != 'бросаю кубик':
+    while input(DICE).lower() != 'бросаю кубик':
         pass
+    playsound(MP3_PATH)
     dice = randint(1, 6)
-    # show_image('На кубике выпало...', DICE_IMAGES[dice])
-    print(dice)
-    if character.chicken:
+    show_image(f'dices/{DICE_IMAGES[dice]}', 'На кубике выпало...')
+    if character.chicken and dice != 1:
         dice -= 1
-        # show_image('Курица на башке уменьшила на 1 результат твоего броска', DICE_IMAGES[dice])
-        print(dice, 'С курицей')
+        show_image(f'dices/{DICE_IMAGES[dice]}',
+                   'Курица на твоей башке уменьшила результат броска на 1')
+    print()
     if dice >= 5:
         print(RUN_AWAY_OK)
+        input(PUSH_ENTER)
     elif dice >= 3:
         print(RUN_AWAY_SO_SO)
+        input(PUSH_ENTER)
         monster_get_item(character)
     else:
         if character.invisibility:
             character.invisibility = False
-            print(USE_INVISIBLE)
-            # show_image('Зелье невидимости. С газиками!', image)
+            print(INVISIBILITY_POTION.after_use)
+            input(PUSH_ENTER)
+            show_image('monster_treasures/invisibility',
+                       'Зелье невидимости. Полусладкое!')
         else:
             print(RUN_AWAY_BAD)
+            input(PUSH_ENTER)
+            show_image('common/angel', 'The end')
             return False
     return True
 
@@ -439,7 +570,6 @@ def doors_progress(level, table, index, event, finish=False):
     TITLE = ['', colored('СЛЕВА', 'blue', attrs=['bold']),
              colored('ЦЕНТР', 'blue', attrs=['bold']),
              colored('СПРАВА', 'blue', attrs=['bold'])]
-
     if level == 1:
         table = PrettyTable()
         table.set_style(DOUBLE_BORDER)
@@ -447,15 +577,93 @@ def doors_progress(level, table, index, event, finish=False):
         table.add_row(CURRENT_LEVEl)
         print(table)
         return table[:0]  # возврат только заголовка
-    closed_doors = CLOSED_DOORS.copy()
-    closed_doors.pop(index)
-    closed_doors.insert(index, OPENED_DOORS[event])
-    table.add_row(
-        [f'Уровень\n« {level - 1} »\n' + PASSED + '\n\n───────', *closed_doors]
-    )
+    if event == 'god':
+        table.add_row(
+            [f'Уровень\n« {level - 1} »\n' + PASSED + '\n\n───────',
+             *CLOSED_DOORS]
+            )
+    else:
+        closed_doors = CLOSED_DOORS.copy()
+        closed_doors.pop(index)
+        closed_doors.insert(index, OPENED_DOORS[event])
+        table.add_row(
+            [f'Уровень\n« {level - 1} »\n' + PASSED + '\n\n───────',
+             *closed_doors]
+        )
     if finish:
         print(table)
         return
     table.add_row(CURRENT_LEVEl)
     print(table)
     return table[:-1]
+
+
+def magic_spell():
+    '''Волшебное заклинание в битве с Ктулху.'''
+    from doors_game.text import (
+        MAGIC_SPELL, MAGIC_SPELL_OK, MAGIC_SPELL_WRONG, PUSH_ENTER
+    )
+
+    print(MAGIC_SPELL)
+    input(PUSH_ENTER)
+    if input('Введи волшебную фразу >>> ').lower() == 'vivus ercapus':
+        print(MAGIC_SPELL_OK)
+        return True
+    print(MAGIC_SPELL_WRONG)
+    return False
+
+
+def boss_fight(character):
+    '''Запускает битву с главным боссом - Ктулху.'''
+    from termcolor import colored
+    from doors_game.monsters import CTHULHU
+    from doors_game.text import (
+        CTHULHU_MEET_1, CTHULHU_MEET_2, CTHULHU_MEET_3, LOSE_CTHULHU,
+        PUSH_ENTER, WIN_CTHULHU
+    )
+
+    monster = CTHULHU
+    print('Тебе удалось пройти все уровни Башни.\n'
+          f'Приготовься встретиться с {colored(monster.name, "red")}!')
+    input(PUSH_ENTER)
+    show_image(monster.image, monster.detail)
+    print(CTHULHU_MEET_1)
+    input(PUSH_ENTER)
+    print(CTHULHU_MEET_2)
+    input(PUSH_ENTER)
+    print(CTHULHU_MEET_3)
+    input(PUSH_ENTER)
+    attacks = {'атака': character.attack,
+               'мощная': character.strong_attack,
+               'дальняя': character.boost_attack}
+    last_chance = True
+    while True:
+        show_statistics(character, monster)
+        print()
+        command = fight_command(character)
+        print()
+        if command in attacks:
+            defence = character.items_strength() if command == 'атака' else 0
+            damage = attacks[command]()
+            monster.health -= damage
+        else:
+            defence = character.defence()
+        if monster.health <= 0:
+            input(PUSH_ENTER)
+            print(WIN_CTHULHU)
+            input(PUSH_ENTER)
+            return True
+        character.health -= monster.attack(defence)
+        if character.health <= 0:
+            input(PUSH_ENTER)
+            if last_chance and magic_spell():
+                character.health = 30
+                last_chance = False
+            else:
+                change_to_default(character)
+                monster.health = 100
+                last_chance = True
+                print(LOSE_CTHULHU)
+                input(PUSH_ENTER)
+                return False
+        input(PUSH_ENTER)

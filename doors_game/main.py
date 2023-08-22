@@ -2,62 +2,74 @@
 
 
 def run_doors_game(race, klass, rank):
-    '''Запускает прохождение уровней с дверями.'''
-    import cards as item
-    from funcs import (
-        create_events, doors_progress, get_curse, get_treasure, prepare_game,
-        run_away, show_image, start_fight
+    '''Запускает прохождение игры с вышибанием дверей.'''
+    from doors_game import cards as item
+    from doors_game.funcs import (
+        boss_fight, create_events, doors_progress, get_curse, get_treasure,
+        prepare_game, run_away, start_fight
     )
-    from text import CHOOSE_DOOR, DOORS_INDEXES
+    from doors_game.text import CHOOSE_DOOR, DOORS_INDEXES, PUSH_ENTER
 
     table = None
     index = None
     event = None
-    character, monster_treasures, door_cards = prepare_game(
-        race, klass, rank
+    character, monster_treasures, door_cards, free_treasures = prepare_game(
+        race, klass, rank, show=True
     )
-    for level, floor in enumerate(create_events(), 1):
+    for level, doors in enumerate(create_events(show=True), 1):
+        print(character)
+        input(PUSH_ENTER)
+        table = doors_progress(level, table, index, event)
         if hasattr(character, 'god') and character.god:
             character.god = False
-            print(item.DIVINE_INTERDICTION.after_use + f'{level}')
+            print(item.DIVINE_INTERDICTION.after_use.format(level))
+            input(PUSH_ENTER)
+            event = 'god'
             continue
-        # show_image('levels/level_1', 'Сейчас ты находишься на...')
-        table = doors_progress(level, table, index, event)
         while (choice := input(CHOOSE_DOOR).lower()) not in DOORS_INDEXES:
             pass
+        print()
         index = DOORS_INDEXES[choice]
-        event = floor[index]
+        event = doors[index]
         if event == 'monster':
-            result = start_fight(character)
+            print('За дверью притаился монстр!')
+            input(PUSH_ENTER)
+            result = start_fight(level, character)
             if result is True:  # победил в битве или использовал попуморфа
                 get_treasure(character, monster_treasures)
+                input(PUSH_ENTER)
             elif result is False and run_away(character) is False:
                 return False
             # вариант c None (использовал зелье дружбы) не обрабатывается
         elif event == 'curse':
+            print('Ты открыл дверь с проклятьем...')
+            input(PUSH_ENTER)
             get_curse(character, door_cards)
         elif event == 'free':
-            get_treasure(character, item.free_room_treasures)
+            print('Проход свободен. На полу лежат бесхозные вещи...')
+            input(PUSH_ENTER)
+            get_treasure(character, free_treasures)
+            input(PUSH_ENTER)
     doors_progress(level + 1, table, index, event, finish=True)
-    # ####################################################################
-    print('*' * 10)
-    print(f'Осталось сокровищ монстров {len(monster_treasures)}:')
+    print(character)
+    input(PUSH_ENTER)
+    print('----- after game -----')
+    print(f'Всего сокровищ монстров {len(monster_treasures)}:')
     print(*monster_treasures, sep='\n')
     print('*' * 10)
-    print(f'Осталось проклятий {len(door_cards)}:')
+    print(f'Всего карт дверей {len(door_cards)}:')
     print(*door_cards, sep='\n')
     print('*' * 10)
-    print(f'Осталось свободных сокровищ {len(item.free_room_treasures)}:')
-    print(*item.free_room_treasures, sep='\n')
-    print('*' * 10)
-    # ####################################################################
-    return True
+    print(f'Всего свободных сокровищ {len(free_treasures)}:')
+    print(*free_treasures, sep='\n')
+    print('----- after game -----\n')
+    return boss_fight(character)
 
 
 if __name__ == '__main__':
-    race = 'Эльф'
+    # race = 'Эльф'
     # race = 'Дварф'
-    # race = 'Халфлинг'
+    race = 'Халфлинг'
     klass = 'Воин'
     # klass = 'Клирик'
     # klass = 'Волшебник'
