@@ -7,9 +7,9 @@ from colorama import just_fix_windows_console
 from termcolor import colored, cprint
 
 from functions import (
-    animation, check_have_dagger, game_begins, load_race_klass_rank, playsound,
-    save_dagger, save_game, SAVES_PATH, save_rank, save_race_klass, show_image,
-    teleprint
+    animation, check_have_dagger, game_begins, game_passed_by,
+    load_race_klass_rank, playsound, save_dagger, save_game, SAVES_PATH,
+    save_rank, save_race_klass, show_image, teleprint
 )
 from doors_game.main import run_doors_game
 from doors_game.text import DOORS_INTRO
@@ -657,12 +657,16 @@ def play_chapter_12():
     teleprint(chapter_12.G)
     input(clr.PUSH_ENTER)
     playsound('alarm_clock', True)
+    time.sleep(1)
     teleprint(chapter_12.H)
     input(clr.PUSH_ENTER)
     teleprint(chapter_12.J)
     input(clr.PUSH_ENTER)
+    print(f'{colored("Конец игры!", "blue", attrs=["bold"])}\n')
+    print(game_passed_by(), '\n')
     teleprint(clr.THE_END)
-    input(clr.PUSH_ENTER)
+    input(f'{colored("Для завершения нажми", "blue")} '
+          f'{colored("[Enter]", "blue", attrs=["bold", "underline"])}')
 
 
 if __name__ == '__main__':
@@ -684,7 +688,6 @@ if __name__ == '__main__':
     try:
         Screen.wrapper(animation)
         start_game()
-        # play_chapter_11()
     except Exception as error:
         print(f'{colored("!!! Критическая ошибка !!!", "red")}\n{error}')
         input('Enter, чтобы завершить...')

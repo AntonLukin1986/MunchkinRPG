@@ -1,7 +1,7 @@
 """Основной файл для запуска игры."""
 
 
-def run_doors_game(race, klass, rank):
+def run_doors_game(race, klass, rank, show=False):
     '''Запускает прохождение игры с вышибанием дверей.'''
     from doors_game import cards as item
     from doors_game.funcs import (
@@ -14,9 +14,9 @@ def run_doors_game(race, klass, rank):
     index = None
     event = None
     character, monster_treasures, door_cards, free_treasures = prepare_game(
-        race, klass, rank, show=True
+        race, klass, rank,
     )
-    for level, doors in enumerate(create_events(show=True), 1):
+    for level, doors in enumerate(create_events(), 1):
         print(character)
         input(PUSH_ENTER)
         table = doors_progress(level, table, index, event)
@@ -53,16 +53,17 @@ def run_doors_game(race, klass, rank):
     doors_progress(level + 1, table, index, event, finish=True)
     print(character)
     input(PUSH_ENTER)
-    print('----- after game -----')
-    print(f'Всего сокровищ монстров {len(monster_treasures)}:')
-    print(*monster_treasures, sep='\n')
-    print('*' * 10)
-    print(f'Всего карт дверей {len(door_cards)}:')
-    print(*door_cards, sep='\n')
-    print('*' * 10)
-    print(f'Всего свободных сокровищ {len(free_treasures)}:')
-    print(*free_treasures, sep='\n')
-    print('----- after game -----\n')
+    if show:
+        print('----- after game -----')
+        print(f'Всего сокровищ монстров {len(monster_treasures)}:')
+        print(*monster_treasures, sep='\n')
+        print('*' * 10)
+        print(f'Всего карт дверей {len(door_cards)}:')
+        print(*door_cards, sep='\n')
+        print('*' * 10)
+        print(f'Всего свободных сокровищ {len(free_treasures)}:')
+        print(*free_treasures, sep='\n')
+        print('----- after game -----\n')
     return boss_fight(character)
 
 

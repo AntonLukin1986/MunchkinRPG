@@ -3,15 +3,17 @@ from termcolor import colored
 
 RACES = {'а': 'Эльф', 'б': 'Дварф', 'в': 'Хафлинг'}
 KLASSES = {'а': 'Воин', 'б': 'Волшебник', 'в': 'Клирик'}
-FILES_RACES = {'а': 'elf', 'б': 'dvarf', 'в': 'halfling'}
+FILES_RACES = {'а': 'elf', 'б': 'dwarf', 'в': 'halfling'}
 FILES_CLASSES = {'а': 'warrior', 'б': 'wizard', 'в': 'cleric'}
 
 AGAIN_OR_TESTS = colored('Попробовать ещё раз  (введи 1)\nПоменять персонажа (вернуться в главу с тестами)  (введи 2)', 'blue')
-ATTENTION = '''{attention} В игре тебе потребуется вводить различный текст.
+ATTENTION = '''
+{attention} В игре тебе потребуется вводить различный текст.
 Кнопка {enter} служит для подтверждения ввода.
-Руководствуйся подсказками на экране!
+Руководствуйся подсказками на экране.
 Для выхода из игры нажми {ctrl}+{c} или закрой основное окно.
-Играй со звуком для полного погружения!'''.format(
+Играй СО ЗВУКОМ для полного погружения!
+'''.format(
     attention=colored('Внимание!', 'red'),
     enter=colored('[Enter]', 'blue', attrs=['bold', 'underline']),
     ctrl=colored('[Ctrl]', 'blue', attrs=['bold', 'underline']),
@@ -58,5 +60,5 @@ OCTAEDRON = colored('Желатиновый октаэдр', 'red')
 PRINCESS = colored('Ариэлла', 'yellow')
 RAT_ON_STICK = colored('Крыса на палочке', 'green')
 STINK_POTION = colored('Зелье ротовой вони', 'green')
-THE_END = colored('Игра создана по мотивам настолки «Манчкин» её преданным поклонником shahter86\nКонец!', 'green')
+THE_END = colored('Игра создана по мотивам настолки «Манчкин» её преданным поклонником shahter86@mail.ru', 'green')
 WALL = colored('Стенка-мгновенка', 'green')

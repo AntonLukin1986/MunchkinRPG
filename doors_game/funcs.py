@@ -64,7 +64,7 @@ def show_image(image_name: str, description: str) -> None:
     window.mainloop()
 
 
-def create_events(floors=10, show=True):
+def create_events(floors=10, show=False):
     '''Создание схемы уровня со случайным расположением событий за дверями.'''
     from random import randint
 
@@ -151,7 +151,7 @@ def create_character(race, klass, rank):
     return klasses_set[klass](race, rank, **kwargs), treasures_for_rank
 
 
-def prepare_game(race, klass, rank, show=True):
+def prepare_game(race, klass, rank, show=False):
     '''Подготовка персонажа и стартовых наборов карт.'''
     from doors_game.cards import (
         door_cards_base, door_cards_specific,
@@ -204,7 +204,7 @@ def weak_or_strong_arm(char, weak=True):
     )
 
 
-def get_random_card(cards_set, show=True):
+def get_random_card(cards_set, show=False):
     '''Перемещает случайную карту из набора в игру.'''
     from random import randint
     from doors_game.cards import PLUG
@@ -232,6 +232,7 @@ def get_treasure(character, cards_set):
     card = get_random_card(cards_set)
     if isinstance(card, Boost):
         character.boost += card.value
+        print(f'Дальнобойная атака увеличена на {card.value}.')
     elif isinstance(card, Item):
         if card.kind == 'arm':
             # определяется, в какой руке самое слабое оружие
@@ -294,6 +295,7 @@ def get_curse(character, cards_set):
         return
     setattr(character, lose, value)  # в том числе для Бафа
     if card.kind != 'lose':
+        print(card.description)
         input(PUSH_ENTER)
 
 

@@ -205,7 +205,7 @@ class Warrior(Character):
         return (
             ('Колени → Шипастые коленки [+2]\n' if self.knees else '') +
             ('Бёдра → Колготы великанской силы [+2]\n' if self.tights else '')
-            + (f'{DUPPEL} (увеличивает силу шмоток в 2 раза)'
+            + (f'{DUPPEL} (увеличивает силу шмоток в 2 раза)\n'
                if self.doppleganger else '')
         )
 

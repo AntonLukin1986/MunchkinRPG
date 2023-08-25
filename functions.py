@@ -51,7 +51,7 @@ def show_image(image_name: str, description: str) -> None:
                 'но её украли гномы...')
 
     window = tk.Tk()
-    window.title('Манчкин RPG')
+    window.title('Манчкин РПГ')
     window.resizable(False, False)  # без регулировки размера
     window.attributes('-topmost', True)  # на передний план
     frame_1 = tk.Frame(master=window, bg='green')  # задний фон вокруг
@@ -209,3 +209,23 @@ def load_race_klass_rank() -> Union[str, str, int]:
         klass = db['KLASS']
         rank = db['RANK']
     return race, klass, int(rank)
+
+
+def game_passed_by() -> str:
+    '''Для сохранения и отображения, какими персонажами пройдена игра.'''
+    import shelve
+
+    text = '    Пройдено персонажами:'
+    current = load_race_klass_rank()
+    with shelve.open(SAVES_PATH) as db:
+        characters = db.get('PASSED_BY', False)
+        if not characters:
+            db['PASSED_BY'] = [current]
+        else:
+            if current not in characters:
+                characters.append(current)
+                db['PASSED_BY'] = characters
+        characters = db['PASSED_BY']
+    for character in characters:
+        text += '\n{0}-{1} {2} ранга'.format(*character)
+    return text
