@@ -13,13 +13,13 @@ ATTENTION = '''{attention} В игре тебе потребуется ввод�
 Для выхода из игры нажми {ctrl}+{c} или закрой основное окно.
 Играй со звуком для полного погружения!'''.format(
     attention=colored('Внимание!', 'red'),
-    enter=colored('[enter]', 'blue', attrs=['bold', 'underline']),
+    enter=colored('[Enter]', 'blue', attrs=['bold', 'underline']),
     ctrl=colored('[Ctrl]', 'blue', attrs=['bold', 'underline']),
     c=colored('[C]', 'blue', attrs=['bold', 'underline'])
 )
 PUSH_ENTER = '{} {} \n'.format(
     colored('Для продолжения нажми', 'blue'),
-    colored('[enter]', 'blue', attrs=['bold', 'underline'])
+    colored('[Enter]', 'blue', attrs=['bold', 'underline'])
 )
 
 # --- Для функций ---

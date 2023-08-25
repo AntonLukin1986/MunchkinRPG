@@ -29,8 +29,11 @@ def start_game():
     print('╤' * 63, clr.ATTENTION, '╧' * 63, '\n', sep='\n')
     cprint('► Г Л А В Н О Е   М Е Н Ю ◄', 'black', attrs=['bold'])
     print('▬' * 27)
-    db = shelve.open(SAVES_PATH)
-    progress = db.get('IN_PROGRESS')
+    try:
+        db = shelve.open(SAVES_PATH)
+        progress = db.get('IN_PROGRESS')
+    except EOFError:
+        progress = None
     if progress is None:
         db.close()
         while input(clr.START_GAME).lower() != 'начать':
@@ -49,7 +52,7 @@ def start_game():
             db.close()
             print()
             GAME_STAGES[progress]()
-        if decision == 'заново':
+        elif decision == 'заново':
             del db['IN_PROGRESS']
             db.close()
             play_intro()
@@ -108,7 +111,7 @@ def play_chapter_1():
     teleprint(chapter_1.A)
     input(clr.PUSH_ENTER)
     playsound('birds_song')
-    show_image('city', 'город Токийск Алтайского края')
+    show_image('city', 'городок Токийск Алтайского края')
     teleprint(chapter_1.A_2)
     input(clr.PUSH_ENTER)
     show_image('thief', 'класс Вор')
@@ -130,7 +133,7 @@ def play_chapter_1():
     print()
     playsound('dice')
     time.sleep(2)
-    show_image('dice_six', 'На кубике выпало ШЕСТЬ')
+    show_image('dice_six', 'На кубике выпало...')
     teleprint(chapter_1.THEFT_SUCCESS)
     input(clr.PUSH_ENTER)
     teleprint(chapter_1.E)
@@ -141,7 +144,7 @@ def play_chapter_1():
     print()
     playsound('dice')
     time.sleep(2)
-    show_image('dice_one', 'На кубике выпало ОДИН')
+    show_image('dice_one', 'На кубике выпало...')
     teleprint(chapter_1.OTHER_THEFT_FAIL)
     input(clr.PUSH_ENTER)
     teleprint(chapter_1.DANGER)
@@ -150,6 +153,7 @@ def play_chapter_1():
     while input(clr.USE_CHEET_DICE).lower() != 'использовать читерский кубик':
         pass
     print()
+    time.sleep(1)
     show_image('cheet_dice', 'Читерский кубик')
     teleprint(chapter_1.OTHER_THEFT_SUCCESS)
     input(clr.PUSH_ENTER)
@@ -677,6 +681,10 @@ if __name__ == '__main__':
         'chapter_11': play_chapter_11,
         'chapter_12': play_chapter_12
     }
-    Screen.wrapper(animation)
-    start_game()
-    # play_chapter_12()
+    try:
+        Screen.wrapper(animation)
+        start_game()
+        # play_chapter_11()
+    except Exception as error:
+        print(f'{colored("!!! Критическая ошибка !!!", "red")}\n{error}')
+        input('Enter, чтобы завершить...')

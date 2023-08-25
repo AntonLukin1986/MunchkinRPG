@@ -68,12 +68,12 @@ class Character():
     ):
         self.race = race
         if self.race == 'Эльф':
-            self.DEFAULT_ATTACK = 8
+            self.DEFAULT_POWER = 8
             self.health = 110
         elif self.race == 'Дварф':
-            self.DEFAULT_ATTACK = 12
+            self.DEFAULT_POWER = 12
             self.health = 90
-        # Халфлинг - здоровье и атака по дефолту
+        # Халфлинг - здоровье 100 и атака 10 по дефолту
         self.rank = rank
         self.helmet = helmet
         self.armor = armor

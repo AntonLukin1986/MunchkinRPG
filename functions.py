@@ -1,8 +1,18 @@
 """Модуль с дополнительными функциями для игры."""
 from pathlib import Path
+import sys
 from typing import Union
 
-SAVES_PATH = str(Path(__file__).resolve().parent / 'saves/game_progress')
+# путь для exe-шника одним файлом
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    DIRNAME = 'Munchkin RPG'
+    SAVES_FILE = 'game_progress'
+    SAVES_DIR = Path.home() / DIRNAME
+    if not SAVES_DIR.exists():
+        SAVES_DIR.mkdir()
+    SAVES_PATH = str(SAVES_DIR / SAVES_FILE)
+else:
+    SAVES_PATH = str(Path(__file__).resolve().parent / 'saves/game_progress')
 
 
 def teleprint(*args, delay=0.05, str_join=' ') -> None:
@@ -36,7 +46,7 @@ def show_image(image_name: str, description: str) -> None:
     import re
     import tkinter as tk
 
-    IMAGES_DIR = Path(__file__).resolve().parent / 'images/'
+    IMAGES_DIR = Path(__file__).resolve().parent / 'images/text_game'
     NO_IMAGE = ('Здесь должна была быть\nкрасивая картинка,\n'
                 'но её украли гномы...')
 

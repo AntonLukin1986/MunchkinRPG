@@ -4,10 +4,16 @@
 def show_image(image_name: str, description: str) -> None:
     """Показать окно с картинкой."""
     import re
+    import sys
     from pathlib import Path
     import tkinter as tk
 
-    IMAGES_DIR = Path(__file__).resolve().parent / 'images/'
+    DIRNAME = 'images/doors_game'
+    # путь для exe-шника одним файлом
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        IMAGES_DIR = Path(sys._MEIPASS).resolve() / DIRNAME
+    else:
+        IMAGES_DIR = Path(__file__).resolve().parent.parent / DIRNAME
     NO_IMAGE = ('Здесь должна была быть\nкрасивая картинка,\n'
                 'но её украли гномы...')
 
