@@ -19,7 +19,7 @@ ATTENTION = '''{attention} В игре тебе потребуется ввод�
 )
 PUSH_ENTER = '{} {} \n'.format(
     colored('Для продолжения нажми', 'blue'),
-    colored('[enter]', 'blue', attrs=['bold', 'underline'])
+    colored('[Enter]', 'blue', attrs=['bold', 'underline'])
 )
 
 # --- Для функций ---
