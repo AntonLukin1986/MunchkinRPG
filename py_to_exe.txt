@@ -2,4 +2,4 @@
 1) активировать виртуальное окружение
 2) перейти на уровень выше cd ..
 3) выполнить команду:
-pyinstaller --onefile --add-data="munchkin_rpg/images;./images/" --add-data="munchkin_rpg/mp3;./mp3/" --collect-all=pyfiglet --name="Munchkin RPG" --icon=munchkin_rpg/icon.png munchkin_rpg/main.py
+pyinstaller --onefile --add-data="munchkin_rpg/images;./images/" --add-data="munchkin_rpg/mp3;./mp3/" --collect-all=pyfiglet --name="Munchkin RPG" --icon="munchkin_rpg/icon.png" munchkin_rpg/main.py

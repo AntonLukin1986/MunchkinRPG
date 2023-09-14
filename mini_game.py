@@ -5,9 +5,9 @@ from typing import Union
 from termcolor import colored, cprint
 
 ATTACK = '{0} → урон от 1 до 5\n{1}  → урон от 10 до 20\n{2} → урон от 30 до 40'.format(
-        colored('lite', 'green', attrs=['bold']),
-        colored('mid', 'green', attrs=['bold']),
-        colored('hard', 'green', attrs=['bold']),
+        colored('Лёгкая', 'green', attrs=['bold']),
+        colored('Средняя', 'green', attrs=['bold']),
+        colored('Тяжёлая', 'green', attrs=['bold']),
 )
 RANK = '''<>-<>-<>-<>-<>-<>-<>-<>-<>-<>-<>-<>-<>-<>-<>-<>-<>\n
 Тренировки закончены. Начинаются {} в зачёт.
@@ -57,9 +57,9 @@ def get_user_attack() -> int:
     '''Вычисляет совокупный урон от атак игрока.'''
     damage = 0
     attacks_types = {
-        'lite': get_lite_attack,
-        'mid': get_mid_attack,
-        'hard': get_hard_attack,
+        'Лёгкая': get_lite_attack,
+        'Средняя': get_mid_attack,
+        'Тяжёлая': get_hard_attack,
     }
     for number in range(1, 6):
         print(ATTACK)

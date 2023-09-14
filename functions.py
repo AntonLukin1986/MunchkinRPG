@@ -51,6 +51,7 @@ def show_image(image_name: str, description: str) -> None:
                 'но её украли гномы...')
 
     window = tk.Tk()
+    window.bind('<Escape>', lambda event: window.destroy())
     window.title('Манчкин РПГ')
     window.resizable(False, False)  # без регулировки размера
     window.attributes('-topmost', True)  # на передний план
@@ -97,8 +98,19 @@ def show_image(image_name: str, description: str) -> None:
     window.mainloop()
 
 
+def custom_handler(event) -> None:
+    '''Обработчик нажатия кнопок, прерывающих анимацию.'''
+    from asciimatics.event import KeyboardEvent
+    from asciimatics.exceptions import StopApplication
+    from asciimatics.screen import Screen
+
+    if (isinstance(event, KeyboardEvent) and
+       event.key_code == Screen.KEY_ESCAPE):
+        raise StopApplication("User quit")
+
+
 def game_begins(screen) -> None:
-    """Анимация начала игры после создания персонажа."""
+    """Анимация после создания персонажа."""
     from asciimatics.effects import Cycle, Print, Stars
     from asciimatics.renderers import FigletText, SpeechBubble
     from asciimatics.scene import Scene
@@ -112,13 +124,13 @@ def game_begins(screen) -> None:
         Stars(screen, 200),
         Print(
             screen,
-            SpeechBubble('Нажми Q для продолжения'),
+            SpeechBubble('Нажми Esc для продолжения'),
             screen.height-5,
             speed=1,
             transparent=False
         )
     ]
-    screen.play([Scene(effects, 500)])
+    screen.play([Scene(effects, 500)], unhandled_input=custom_handler)
 
 
 def animation(screen) -> None:
@@ -150,14 +162,14 @@ def animation(screen) -> None:
         ),
         Print(
             screen,
-            SpeechBubble('Нажми Q чтобы начать'),
+            SpeechBubble('Нажми Esc чтобы начать'),
             screen.height-5,
             speed=1,
             transparent=False
         )
     ]
     scenes.append(Scene(effects, -1))
-    screen.play(scenes, stop_on_resize=True)
+    screen.play(scenes, stop_on_resize=False, unhandled_input=custom_handler)
 
 
 def playsound(filename: str, sync=False) -> None:
