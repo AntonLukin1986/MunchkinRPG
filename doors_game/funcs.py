@@ -247,8 +247,11 @@ def get_treasure(character, cards_set):
     elif isinstance(card, Buff):
         if card is WISHING_RING:
             character.wishing_ring += 1
+            print('Ты надеваешь на палец хотельное кольцо. '
+                  'Оно позволит избежать последствий ужасного проклятья.')
         else:
             setattr(character, card.kind, True)
+            print(f'Ты получил: {card}')
 
 
 def get_curse(character, cards_set):
@@ -600,7 +603,7 @@ def doors_progress(level, table, index, event, finish=False):
         )
     if finish:
         print(table)
-        return
+        return None
     table.add_row(CURRENT_LEVEl)
     print(table)
     return table[:-1]

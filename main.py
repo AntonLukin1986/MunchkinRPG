@@ -51,6 +51,9 @@ def start_game():
         if decision == 'продолжить':
             db.close()
             print()
+            if progress == 'chapter_12':
+                teleprint(clr.CHALLENGE)
+                input(clr.PUSH_ENTER)
             GAME_STAGES[progress]()
         elif decision == 'заново':
             del db['IN_PROGRESS']
@@ -79,7 +82,7 @@ def play_character_creation():
     teleprint(character_creation.A)
     input(clr.PUSH_ENTER)
     teleprint(character_creation.DESCRIBE_CHARACTER)
-    while len(input(clr.CHAR_DESCR)) < 101:
+    while len(input(clr.CHAR_DESCR)) < 100:
         print(character_creation.DETAILED_DESCRIPTION)
     cprint('\n► Автоматическая генерация персонажа по описанию...\n', 'blue')
     time.sleep(3)
@@ -683,11 +686,11 @@ if __name__ == '__main__':
         'chapter_9': play_chapter_9,
         'chapter_10': play_chapter_10,
         'chapter_11': play_chapter_11,
-        'chapter_12': play_chapter_12
+        'chapter_12': play_chapter_8
     }
     try:
         Screen.wrapper(animation)
         start_game()
     except Exception as error:
         print(f'{colored("!!! Критическая ошибка !!!", "red")}\n{error}')
-        input('Enter, чтобы завершить...')
+        input('Нажатие Enter завершит работу программы...')
