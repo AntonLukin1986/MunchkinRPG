@@ -57,9 +57,9 @@ def get_user_attack() -> int:
     '''Вычисляет совокупный урон от атак игрока.'''
     damage = 0
     attacks_types = {
-        'Лёгкая': get_lite_attack,
-        'Средняя': get_mid_attack,
-        'Тяжёлая': get_hard_attack,
+        'лёгкая': get_lite_attack,
+        'средняя': get_mid_attack,
+        'тяжёлая': get_hard_attack,
     }
     for number in range(1, 6):
         print(ATTACK)

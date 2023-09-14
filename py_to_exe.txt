@@ -1,5 +1,6 @@
     Конвертация в исполняемый Windows файл:
 1) активировать виртуальное окружение
 2) перейти на уровень выше cd ..
-3) выполнить команду:
+3) выполнить в консоли:
 pyinstaller --onefile --add-data="munchkin_rpg/images;./images/" --add-data="munchkin_rpg/mp3;./mp3/" --collect-all=pyfiglet --name="Munchkin RPG" --icon="munchkin_rpg/icon.ico" munchkin_rpg/main.py
+!!! Срабатывает через раз - ХЗ, почему... (ошибка не найден модуль asciimatics)
