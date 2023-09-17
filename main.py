@@ -7,11 +7,10 @@ from colorama import just_fix_windows_console
 from termcolor import colored, cprint
 
 from functions import (
-    animation, check_have_dagger, game_begins, game_passed_by,
-    load_race_klass_rank, playsound, save_dagger, save_game, SAVES_PATH,
-    save_rank, save_race_klass, show_image, teleprint
+    animation, check_have_dagger, game_begins, game_passed, # game_passed_by,
+    new_character, playsound, save_dagger, save_game, SAVES_PATH, save_rank,
+    save_race_klass, show_image, teleprint, tower_assault
 )
-from doors_game.main import run_doors_game
 from doors_game.text import DOORS_INTRO
 import mini_game
 from texts import (
@@ -29,41 +28,44 @@ def start_game():
     print('╤' * 63, clr.ATTENTION, '╧' * 63, '\n', sep='\n')
     cprint('► Г Л А В Н О Е   М Е Н Ю ◄', 'black', attrs=['bold'])
     print('▬' * 27)
-    try:
-        db = shelve.open(SAVES_PATH)
-        progress = db.get('IN_PROGRESS')
-    except EOFError:
-        progress = None
-    if progress is None:
-        db.close()
+    with shelve.open(SAVES_PATH) as db:
+        last_save = db.get('LAST_SAVE')
+        game_passed = db.get('GAME_PASSED')
+    if last_save is None:
         while input(clr.START_GAME).lower() != 'начать':
             pass
-        play_intro()
-    else:
-        cprint('Введи "Заново" - начать игру с самого начала', 'blue', end='')
-        cprint(' (последнее сохранение будет сброшено!)', 'red')
-        cprint('Введи "Продолжить" - загрузить последнее сохранение ', 'blue')
-        while (
-            (decision := input(colored('>>> ', 'blue')).lower())
-            not in ('заново', 'продолжить')
-        ):
-            pass
-        if decision == 'продолжить':
-            db.close()
-            print()
-            if progress == 'chapter_12':
-                teleprint(clr.CHALLENGE)
-                input(clr.PUSH_ENTER)
-            GAME_STAGES[progress]()
-        elif decision == 'заново':
-            del db['IN_PROGRESS']
-            db.close()
-            play_intro()
+        return play_intro()
+    cprint('Введи "Заново" - начать игру с самого начала', 'blue', end='')
+    cprint(' (последнее сохранение будет сброшено!)', 'red')
+    cprint('Введи "Продолжить" - загрузить последнее сохранение', 'blue')
+    checking = ['заново', 'продолжить']
+    if game_passed is not None:
+        cprint('Введи "Рейтинг" - покоряй башню повторно и получи '
+               'максимальный рейтинг', 'blue')
+        checking.append('рейтинг')
+    while (decision := input(colored('>>> ', 'blue')).lower()) not in checking:
+        pass
+    if decision == 'заново':
+        print()
+        return play_intro()
+    if decision == 'продолжить':
+        print()
+        return GAME_STAGES[last_save]()
+    if decision == 'рейтинг':
+        print()
+        teleprint(clr.CHALLENGE)
+        input(clr.PUSH_ENTER)
+        #функция отображения таблицы со статой на основе game_passed_by()
+        teleprint('Вперёд, к победе!')
+        input(clr.PUSH_ENTER)
+        new_character()
+        tower_assault()
+        #изменение рейтинга на основании текущего класса, расы и ранга
+        return start_game()
 
 
 def play_intro():
     """Введение."""
-    print()
     cprint('§ Введение', 'black', attrs=['bold'])
     print('•' * 27)
     teleprint(INTRO_1)
@@ -71,7 +73,7 @@ def play_intro():
     show_image('country', 'Вымышляндия')
     teleprint(INTRO_2)
     input(clr.PUSH_ENTER)
-    play_character_creation()
+    return play_character_creation()
 
 
 def play_character_creation():
@@ -103,7 +105,7 @@ def play_character_creation():
     time.sleep(2)
     Screen.wrapper(game_begins)
     print()
-    play_chapter_1()
+    return play_chapter_1()
 
 
 def play_chapter_1():
@@ -174,7 +176,7 @@ def play_chapter_1():
     teleprint(chapter_1.H)
     input(clr.PUSH_ENTER)
     show_image('market_fight', 'Самое "уютное" местечко в городке...')
-    play_chapter_2()
+    return play_chapter_2()
 
 
 def play_chapter_2():
@@ -229,7 +231,7 @@ def play_chapter_2():
     input(clr.PUSH_ENTER)
     teleprint(chapter_2.M)
     input(clr.PUSH_ENTER)
-    play_chapter_3()
+    return play_chapter_3()
 
 
 def play_chapter_3():
@@ -282,7 +284,7 @@ def play_chapter_3():
     teleprint(chapter_3.IA)
     input(clr.PUSH_ENTER)
     save_dagger(have_dagger)
-    play_chapter_4()
+    return play_chapter_4()
 
 
 def play_chapter_4():
@@ -328,7 +330,7 @@ def play_chapter_4():
     show_image('dead_horse', 'Конь андедный')
     teleprint(chapter_4.J)
     input(clr.PUSH_ENTER)
-    play_chapter_5()
+    return play_chapter_5()
 
 
 def play_chapter_5():
@@ -359,7 +361,7 @@ def play_chapter_5():
     teleprint(chapter_5.G)
     input(clr.PUSH_ENTER)
     show_image('princess_kenny', 'Принцесса Кенни')
-    play_chapter_6()
+    return play_chapter_6()
 
 
 def play_chapter_6():
@@ -419,7 +421,7 @@ def play_chapter_6():
     input(clr.PUSH_ENTER)
     teleprint(chapter_6.K)
     input(clr.PUSH_ENTER)
-    play_chapter_7()
+    return play_chapter_7()
 
 
 def play_chapter_7():
@@ -475,7 +477,7 @@ def play_chapter_7():
     show_image('tester', 'Эта штука изменит твою жизнь навсегда!')
     teleprint(chapter_7.OA_1)
     input(clr.PUSH_ENTER)
-    play_chapter_8()
+    return play_chapter_8()
 
 
 def play_chapter_8():
@@ -535,7 +537,7 @@ def play_chapter_8():
     teleprint(chapter_8.J)
     input(clr.PUSH_ENTER)
     save_race_klass(race, klass)
-    play_chapter_9()
+    return play_chapter_9()
 
 
 def play_chapter_9():
@@ -578,7 +580,7 @@ def play_chapter_9():
     save_rank(rank)
     print(chapter_9.H.format(rank, colored(f'{rank} ранг', 'green')))
     input(clr.PUSH_ENTER)
-    play_chapter_10()
+    return play_chapter_10()
 
 
 def play_chapter_10():
@@ -612,7 +614,7 @@ def play_chapter_10():
     input(clr.PUSH_ENTER)
     teleprint(chapter_10.J)
     input(clr.PUSH_ENTER)
-    play_chapter_11()
+    return play_chapter_11()
 
 
 def play_chapter_11():
@@ -622,15 +624,8 @@ def play_chapter_11():
     time.sleep(1)
     teleprint(DOORS_INTRO)
     input(clr.PUSH_ENTER)
-    if run_doors_game(*load_race_klass_rank()) is False:
-        print(clr.AGAIN_OR_TESTS)
-        while (result := input(clr.CHOICE)) not in ('1', '2'):
-            pass
-        print()
-        if result == '1':
-            return play_chapter_11()
-        return play_chapter_8()
-    play_chapter_12()
+    tower_assault()
+    return play_chapter_12()
 
 
 def play_chapter_12():
@@ -666,10 +661,12 @@ def play_chapter_12():
     teleprint(chapter_12.J)
     input(clr.PUSH_ENTER)
     print(f'{colored("Конец игры!", "blue", attrs=["bold"])}\n')
-    print(game_passed_by(), '\n')
+    game_passed()
+    #записать в рейтинг и вывести полученные очки рейтинга за текущее прохождение
     teleprint(clr.THE_END)
     input(f'{colored("Для завершения нажми", "blue")} '
           f'{colored("[Enter]", "blue", attrs=["bold", "underline"])}')
+    return None
 
 
 if __name__ == '__main__':
@@ -686,10 +683,10 @@ if __name__ == '__main__':
         'chapter_9': play_chapter_9,
         'chapter_10': play_chapter_10,
         'chapter_11': play_chapter_11,
-        'chapter_12': play_chapter_8
+        'chapter_12': play_chapter_12
     }
     try:
-        Screen.wrapper(animation)
+        #Screen.wrapper(animation)
         start_game()
     except Exception as error:
         print(f'{colored("!!! Критическая ошибка !!!", "red")}\n{error}')

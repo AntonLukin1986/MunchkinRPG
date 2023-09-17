@@ -36,7 +36,7 @@ def save_game(current_stage: str) -> None:
     from termcolor import cprint
 
     with shelve.open(SAVES_PATH) as db:
-        db['IN_PROGRESS'] = current_stage
+        db['LAST_SAVE'] = current_stage
     cprint('¶ Контрольная точка сохранения ¶', 'blue')
     print('•' * 32)
 
@@ -99,7 +99,7 @@ def show_image(image_name: str, description: str) -> None:
 
 
 def custom_handler(event) -> None:
-    '''Обработчик нажатия кнопок, прерывающих анимацию.'''
+    """Обработчик нажатия кнопок, прерывающих анимацию."""
     from asciimatics.event import KeyboardEvent
     from asciimatics.exceptions import StopApplication
     from asciimatics.screen import Screen
@@ -173,7 +173,7 @@ def animation(screen) -> None:
 
 
 def playsound(filename: str, sync=False) -> None:
-    '''Проигрывание звуков в игре.'''
+    """Проигрывание звуков в игре."""
     from playsound import playsound
     MP3_PATH = str(Path(__file__).resolve().parent / f'mp3/{filename}.mp3')
     playsound(MP3_PATH, sync)  # False - выполнять асинхронно
@@ -223,21 +223,69 @@ def load_race_klass_rank() -> Union[str, str, int]:
     return race, klass, int(rank)
 
 
-def game_passed_by() -> str:
-    '''Для сохранения и отображения, какими персонажами пройдена игра.'''
+def new_character() -> None:
+    """Создаёт персонажа вне текстовой части и запускает уровень с башней."""
+    from termcolor import colored, cprint
+    import mini_game
+    from texts import colored_text as clr
+
+    cprint('Выбери одну из рас: эльф (а), дварф (б) или хафлинг (в)')
+    while (choice_1 := input(clr.ENTER_LETTER)).lower() not in ('а', 'б', 'в'):
+        pass
+    cprint('Выбери один из классов: воин (а), волшебник (б) или клирик (в)')
+    while (choice_2 := input(clr.ENTER_LETTER)).lower() not in ('а', 'б', 'в'):
+        pass
+    race = clr.RACES[choice_1.lower()]
+    klass = clr.KLASSES[choice_2.lower()]
+    print()
+    print('Теперь твой персонаж {}'.format(colored(f'{race}-{klass}',
+          'green')))
+    input(clr.PUSH_ENTER)
+    show_image(clr.FILES_RACES[choice_1], 'раса ' + race)
+    show_image(clr.FILES_CLASSES[choice_2], 'класс ' + klass)
+    print('Определение ранга. Первый бой - разминка.\n')
+    rank = mini_game.start()
+    save_race_klass(race, klass)
+    save_rank(rank)
+
+
+def tower_assault() -> None:
+    """Запускает прохождение башни Ктулху."""
+    from doors_game.main import run_doors_game
+    from texts import colored_text as clr
+
+    while run_doors_game(*load_race_klass_rank()) is False:
+        print(clr.AGAIN_OR_NEW_PERS)
+        while (result := input(clr.CHOICE)) not in ('1', '2'):
+            pass
+        print()
+        if result == '2':
+            new_character()
+
+
+def game_passed() -> None:
+    """Сохранение отметки о прохождении игры."""
     import shelve
 
-    text = '    Пройдено персонажами:'
-    current = load_race_klass_rank()
     with shelve.open(SAVES_PATH) as db:
-        characters = db.get('PASSED_BY', False)
-        if not characters:
-            db['PASSED_BY'] = [current]
-        else:
-            if current not in characters:
-                characters.append(current)
-                db['PASSED_BY'] = characters
-        characters = db['PASSED_BY']
-    for character in characters:
-        text += '\n{0}-{1} {2} ранга'.format(*character)
-    return text
+        db['GAME_PASSED'] = True
+
+
+# def game_passed_by() -> str:
+#     '''Для сохранения и отображения, какими персонажами пройдена игра.'''
+#     import shelve
+
+#     text = '    Пройдено персонажами:'
+#     current = load_race_klass_rank()
+#     with shelve.open(SAVES_PATH) as db:
+#         characters = db.get('PASSED_BY', False)
+#         if not characters:
+#             db['PASSED_BY'] = [current]
+#         else:
+#             if current not in characters:
+#                 characters.append(current)
+#                 db['PASSED_BY'] = characters
+#         characters = db['PASSED_BY']
+#     for character in characters:
+#         text += '\n{0}-{1} {2} ранга'.format(*character)
+#     return text

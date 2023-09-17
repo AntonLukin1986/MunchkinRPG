@@ -18,7 +18,8 @@ def show_image(image_name: str, description: str) -> None:
                 'но её украли гномы...')
 
     window = tk.Tk()
-    window.title('Манчкин RPG')
+    window.bind('<Escape>', lambda event: window.destroy())
+    window.title('Манчкин РПГ')
     window.resizable(False, False)  # без регулировки размера
     window.attributes('-topmost', True)  # на передний план
     frame_1 = tk.Frame(master=window, bg='green')  # задний фон вокруг
