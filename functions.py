@@ -342,7 +342,7 @@ def show_last_points() -> str:
         'Очки рейтинга не получены! С данным сочетанием расы, класса и '
         'ранга ты уже получал такое же или меньшее количество очков.\n')
     with shelve.open(SAVES_PATH) as db:
-        if points := db['LAST_POINTS'] is False:
+        if (points := db['LAST_POINTS']) is False:
             return POINTS_NO
         return POINTS_YES.format(points)
 
