@@ -89,7 +89,7 @@ def show_image(image_name: str, description: str) -> None:
     frame_2.pack(fill=tk.X)
     label = tk.Label(
         master=frame_2,
-        text='Для продолжения закрой это окно',
+        text='Для продолжения нажми Esc',
         font='Calibri 14',
         foreground='black',
         background='yellow'
@@ -271,21 +271,131 @@ def game_passed() -> None:
         db['GAME_PASSED'] = True
 
 
-# def game_passed_by() -> str:
-#     '''Для сохранения и отображения, какими персонажами пройдена игра.'''
-#     import shelve
+def change_rating_table(bonus_ratio: bool) -> None:
+    """Создаёт и обновляет таблицу рейтинга. Записывает полученные очки за
+    последнюю победу над Ктулху."""
+    import shelve
 
-#     text = '    Пройдено персонажами:'
-#     current = load_race_klass_rank()
-#     with shelve.open(SAVES_PATH) as db:
-#         characters = db.get('PASSED_BY', False)
-#         if not characters:
-#             db['PASSED_BY'] = [current]
-#         else:
-#             if current not in characters:
-#                 characters.append(current)
-#                 db['PASSED_BY'] = characters
-#         characters = db['PASSED_BY']
-#     for character in characters:
-#         text += '\n{0}-{1} {2} ранга'.format(*character)
-#     return text
+    RANKS_POINTS = {0: 40, 1: 30, 2: 25, 3: 20}
+    race, klass, rank = load_race_klass_rank()
+    total_points = RANKS_POINTS[rank] * (2 if bonus_ratio else 1)
+    with shelve.open(SAVES_PATH) as db:
+        if 'RATING_TABLE' not in db:
+            db['RATING_TABLE'] = [
+                ['Дварф', 'Воин', 0, RANKS_POINTS[0], None, 0],
+                ['Дварф', 'Воин', 1, RANKS_POINTS[1], None, 0],
+                ['Дварф', 'Воин', 2, RANKS_POINTS[2], None, 0],
+                ['Дварф', 'Воин', 3, RANKS_POINTS[3], None, 0],
+                ['Дварф', 'Волшебник', 0, RANKS_POINTS[0], None, 0],
+                ['Дварф', 'Волшебник', 1, RANKS_POINTS[1], None, 0],
+                ['Дварф', 'Волшебник', 2, RANKS_POINTS[2], None, 0],
+                ['Дварф', 'Волшебник', 3, RANKS_POINTS[3], None, 0],
+                ['Дварф', 'Клирик', 0, RANKS_POINTS[0], None, 0],
+                ['Дварф', 'Клирик', 1, RANKS_POINTS[1], None, 0],
+                ['Дварф', 'Клирик', 2, RANKS_POINTS[2], None, 0],
+                ['Дварф', 'Клирик', 3, RANKS_POINTS[3], None, 0],
+                ['Хафлинг', 'Воин', 0, RANKS_POINTS[0], None, 0],
+                ['Хафлинг', 'Воин', 1, RANKS_POINTS[1], None, 0],
+                ['Хафлинг', 'Воин', 2, RANKS_POINTS[2], None, 0],
+                ['Хафлинг', 'Воин', 3, RANKS_POINTS[3], None, 0],
+                ['Хафлинг', 'Волшебник', 0, RANKS_POINTS[0], None, 0],
+                ['Хафлинг', 'Волшебник', 1, RANKS_POINTS[1], None, 0],
+                ['Хафлинг', 'Волшебник', 2, RANKS_POINTS[2], None, 0],
+                ['Хафлинг', 'Волшебник', 3, RANKS_POINTS[3], None, 0],
+                ['Хафлинг', 'Клирик', 0, RANKS_POINTS[0], None, 0],
+                ['Хафлинг', 'Клирик', 1, RANKS_POINTS[1], None, 0],
+                ['Хафлинг', 'Клирик', 2, RANKS_POINTS[2], None, 0],
+                ['Хафлинг', 'Клирик', 3, RANKS_POINTS[3], None, 0],
+                ['Эльф', 'Воин', 0, RANKS_POINTS[0], None, 0],
+                ['Эльф', 'Воин', 1, RANKS_POINTS[1], None, 0],
+                ['Эльф', 'Воин', 2, RANKS_POINTS[2], None, 0],
+                ['Эльф', 'Воин', 3, RANKS_POINTS[3], None, 0],
+                ['Эльф', 'Волшебник', 0, RANKS_POINTS[0], None, 0],
+                ['Эльф', 'Волшебник', 1, RANKS_POINTS[1], None, 0],
+                ['Эльф', 'Волшебник', 2, RANKS_POINTS[2], None, 0],
+                ['Эльф', 'Волшебник', 3, RANKS_POINTS[3], None, 0],
+                ['Эльф', 'Клирик', 0, RANKS_POINTS[0], None, 0],
+                ['Эльф', 'Клирик', 1, RANKS_POINTS[1], None, 0],
+                ['Эльф', 'Клирик', 2, RANKS_POINTS[2], None, 0],
+                ['Эльф', 'Клирик', 3, RANKS_POINTS[3], None, 0]
+            ]
+        rating_table = db['RATING_TABLE']
+        for index, string in enumerate(rating_table):
+            if string[0] == race and string[1] == klass and string[2] == rank:
+                if string[5] < total_points:
+                    rating_table[index][4] = bonus_ratio
+                    rating_table[index][5] = total_points
+                    db['LAST_POINTS'] = total_points
+                else:
+                    db['LAST_POINTS'] = False
+                break
+        db['RATING_TABLE'] = rating_table
+
+
+def show_last_points() -> str:
+    """Отображает полученные очки за победу над Ктулху."""
+    import shelve
+
+    POINTS_YES = ('За победу над Ктулху ты получаешь {} очков! '
+                  '(рейтинг доступен в главном меню)\n')
+    POINTS_NO = (
+        'Очки рейтинга не получены! С данным сочетанием расы, класса и '
+        'ранга ты уже получал такое же или меньшее количество очков.\n')
+    with shelve.open(SAVES_PATH) as db:
+        if points := db['LAST_POINTS'] is False:
+            return POINTS_NO
+        return POINTS_YES.format(points)
+
+
+def show_rating_table() -> None:
+    """Отображает таблицу рейтинга."""
+    import shelve
+    from prettytable import PrettyTable
+    from termcolor import colored
+    from texts.colored_text import RATING_LEGEND
+
+    with shelve.open(SAVES_PATH) as db:
+        rating = db['RATING_TABLE']
+    TEXT_1 = ('У тебя максимально возможный рейтинг {} очков.\n'
+              'Неужели ты и вправду существуешь?!\n')
+    TEXT_2 = 'Твой текущий рейтинг: {} очков из {} | {}%\n'
+    TITLE = [
+        colored('Раса', 'blue', attrs=['bold']),
+        colored('Класс', 'blue', attrs=['bold']),
+        colored('Ранг', 'blue', attrs=['bold']),
+        colored('Очки', 'blue', attrs=['bold']),
+        colored('Бонус', 'blue', attrs=['bold']),
+        colored('Итого', 'blue', attrs=['bold'])
+    ]
+    table = PrettyTable()
+    table.field_names = TITLE
+    total_rating_points = 0
+    counter = 0
+    for string in rating:
+        if string[-1] == 0:
+            string[-1] = '---'
+            string[-2] = '---'
+        else:
+            total_rating_points += string[-1]
+            string[-2] = 'x2' if string[-2] else 'нет'
+            string = [colored(cell, 'green', attrs=['bold'])
+                      for cell in string]
+        if counter == 3:
+            table.add_row(string, divider=True)
+            counter = 0
+        else:
+            table.add_row(string)
+            counter += 1
+    max_rating_points = sum([string[3] for string in rating]) * 2
+    if total_rating_points == max_rating_points:
+        TEXT_1 = TEXT_1.format(max_rating_points)
+        print(colored(TEXT_1, 'green', attrs=['bold']))
+    else:
+        TEXT_2 = TEXT_2.format(
+            total_rating_points, max_rating_points,
+            round(total_rating_points / max_rating_points * 100, 2)
+        )
+        print(colored(TEXT_2, 'green', attrs=['bold']))
+    print(RATING_LEGEND)
+    print(table)
+    return None

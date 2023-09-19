@@ -2,7 +2,7 @@
 
 
 def run_doors_game(race, klass, rank, show=False):
-    '''Запускает прохождение игры с вышибанием дверей.'''
+    """Запускает прохождение игры с вышибанием дверей."""
     from doors_game import cards as item
     from doors_game.funcs import (
         boss_fight, create_events, doors_progress, get_curse, get_treasure,
