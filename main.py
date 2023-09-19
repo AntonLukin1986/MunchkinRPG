@@ -7,9 +7,9 @@ from colorama import just_fix_windows_console
 from termcolor import colored, cprint
 
 from functions import (
-    animation, check_have_dagger, game_begins, game_passed, # game_passed_by,
-    new_character, playsound, save_dagger, save_game, SAVES_PATH, save_rank,
-    save_race_klass, show_image, teleprint, tower_assault
+    animation, check_have_dagger, game_begins, game_passed, new_character,
+    playsound, save_dagger, save_game, SAVES_PATH, save_rank, save_race_klass,
+    show_image, show_last_points, show_rating_table, teleprint, tower_assault
 )
 from doors_game.text import DOORS_INTRO
 import mini_game
@@ -34,6 +34,7 @@ def start_game():
     if last_save is None:
         while input(clr.START_GAME).lower() != 'начать':
             pass
+        print()
         return play_intro()
     cprint('Введи "Заново" - начать игру с самого начала', 'blue', end='')
     cprint(' (последнее сохранение будет сброшено!)', 'red')
@@ -45,22 +46,18 @@ def start_game():
         checking.append('рейтинг')
     while (decision := input(colored('>>> ', 'blue')).lower()) not in checking:
         pass
+    print()
     if decision == 'заново':
-        print()
         return play_intro()
     if decision == 'продолжить':
-        print()
         return GAME_STAGES[last_save]()
     if decision == 'рейтинг':
-        print()
-        teleprint(clr.CHALLENGE)
-        input(clr.PUSH_ENTER)
-        #функция отображения таблицы со статой на основе game_passed_by()
-        teleprint('Вперёд, к победе!')
+        show_rating_table()
+        print(clr.CHALLENGE)
         input(clr.PUSH_ENTER)
         new_character()
         tower_assault()
-        #изменение рейтинга на основании текущего класса, расы и ранга
+        print(show_last_points())
         return start_game()
 
 
@@ -662,7 +659,7 @@ def play_chapter_12():
     input(clr.PUSH_ENTER)
     print(f'{colored("Конец игры!", "blue", attrs=["bold"])}\n')
     game_passed()
-    #записать в рейтинг и вывести полученные очки рейтинга за текущее прохождение
+    print(show_last_points())
     teleprint(clr.THE_END)
     input(f'{colored("Для завершения нажми", "blue")} '
           f'{colored("[Enter]", "blue", attrs=["bold", "underline"])}')
@@ -686,7 +683,7 @@ if __name__ == '__main__':
         'chapter_12': play_chapter_12
     }
     try:
-        #Screen.wrapper(animation)
+        Screen.wrapper(animation)
         start_game()
     except Exception as error:
         print(f'{colored("!!! Критическая ошибка !!!", "red")}\n{error}')

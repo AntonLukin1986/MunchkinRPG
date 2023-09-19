@@ -56,7 +56,7 @@ def show_image(image_name: str, description: str) -> None:
     frame_2.pack(fill=tk.X)
     label = tk.Label(
         master=frame_2,
-        text='Для продолжения закрой это окно',
+        text='Для продолжения нажми Esc',
         font='Calibri 14',
         foreground='black',
         background='yellow'
@@ -66,7 +66,7 @@ def show_image(image_name: str, description: str) -> None:
 
 
 def create_events(floors=10, show=False):
-    '''Создание схемы уровня со случайным расположением событий за дверями.'''
+    """Создание схемы уровня со случайным расположением событий за дверями."""
     from random import randint
 
     level_events = list()
@@ -85,8 +85,8 @@ def create_events(floors=10, show=False):
 
 
 def create_character(race, klass, rank):
-    '''Создание персонажа и его экипировка в зависимости от уровня, расы
-    и класса. Возвращает не использованные шмотки.'''
+    """Создание персонажа и его экипировка в зависимости от уровня, расы
+    и класса. Возвращает не использованные шмотки."""
     import doors_game.cards as item
     from doors_game.cards import treasures_for_rank
     from doors_game.classes import Cleric, Warrior, Wizard
@@ -153,7 +153,7 @@ def create_character(race, klass, rank):
 
 
 def prepare_game(race, klass, rank, show=False):
-    '''Подготовка персонажа и стартовых наборов карт.'''
+    """Подготовка персонажа и стартовых наборов карт."""
     from doors_game.cards import (
         door_cards_base, door_cards_specific,
         free_room_treasures,
@@ -193,7 +193,7 @@ def prepare_game(race, klass, rank, show=False):
 
 
 def weak_or_strong_arm(char, weak=True):
-    '''Определяет, в какой руке самое слабое/сильное оружие.'''
+    """Определяет, в какой руке самое слабое/сильное оружие."""
     if weak:
         return (
             'left_arm' if
@@ -206,7 +206,7 @@ def weak_or_strong_arm(char, weak=True):
 
 
 def get_random_card(cards_set, show=False):
-    '''Перемещает случайную карту из набора в игру.'''
+    """Перемещает случайную карту из набора в игру."""
     from random import randint
     from doors_game.cards import PLUG
 
@@ -224,8 +224,8 @@ def get_random_card(cards_set, show=False):
 
 
 def get_treasure(character, cards_set):
-    '''Отрабатывает найденную шмотку при открытии свободной двери или после
-    победы над монстром.'''
+    """Отрабатывает найденную шмотку при открытии свободной двери или после
+    победы над монстром."""
     from doors_game.cards import WISHING_RING
     from doors_game.classes import Boost, Buff, Item
     from doors_game.text import WEAK_ITEM
@@ -256,7 +256,7 @@ def get_treasure(character, cards_set):
 
 
 def get_curse(character, cards_set):
-    '''Отрабатывает открытие двери с проклятьем.'''
+    """Отрабатывает открытие двери с проклятьем."""
     from doors_game.classes import Curse
     from doors_game.cards import CHEAT, NO_ITEM, TIGHTS
     from doors_game.text import PUSH_ENTER
@@ -304,7 +304,7 @@ def get_curse(character, cards_set):
 
 
 def fight_command(character):
-    '''Ввод команды игроком и проверка возможности её выполнения.'''
+    """Ввод команды игроком и проверка возможности её выполнения."""
     from doors_game.text import COMBAT, COMBAT_CHECK
 
     confirmed = False
@@ -322,7 +322,7 @@ def fight_command(character):
 
 
 def prepare_monster(level, character):
-    '''Подготавливает монстра для битвы.'''
+    """Подготавливает монстра для битвы."""
     from random import choice
     from doors_game.cards import ILLUSION
     from doors_game.monsters import MONSTERS, PLANT
@@ -340,7 +340,7 @@ def prepare_monster(level, character):
 
 
 def wizard_spells(character):
-    '''Предоставление волшебнику возможности усмирить монстра вместо боя.'''
+    """Предоставление волшебнику возможности усмирить монстра вместо боя."""
     from doors_game.cards import POLLYMORPH_POTION, FRIENDSHIP_POTION
     from doors_game.text import PUSH_ENTER, SPELL_CHOSE
 
@@ -374,8 +374,8 @@ def wizard_spells(character):
 
 
 def change_to_default(character):
-    '''После боя сбрасывает здоровье и выносливость персонажа к первоначальным
-    значениям. Убирает проклятья следующего боя.'''
+    """После боя сбрасывает здоровье и выносливость персонажа к первоначальным
+    значениям. Убирает проклятья следующего боя."""
     setattr(character, 'woman', False)
     setattr(character, 'only_armor', False)
     health = {'Эльф': 110, 'Дварф': 90, 'Хафлинг': 100}
@@ -384,9 +384,10 @@ def change_to_default(character):
 
 
 def show_statistics(character, monster) -> None:
-    '''Отображение статистики во время боя.'''
+    """Отображение статистики во время боя."""
     from termcolor import colored, cprint
     from doors_game.text import NAME
+
     total_power = character.strength()
     print(NAME, '¶', f'Боевая сила {total_power}')
     min_attack = round(character.MIN_RATIO * total_power)
@@ -435,15 +436,12 @@ def show_statistics(character, monster) -> None:
 
 
 def start_fight(level, character):
-    '''Запускает битву персонажа с монстром.'''
+    """Запускает битву персонажа с монстром."""
     from termcolor import colored
     from doors_game.text import MONSTER_DEAD, MONSTER_WIN, PUSH_ENTER
 
     monster = prepare_monster(level, character)
-    print(
-        f'Ты столкнулся с {colored(monster, "red")}. Приготовься к битве!',
-        '\n'
-    )
+    print(f'Ты столкнулся с {colored(monster, "red")}. Приготовься к битве!\n')
     if (character.klass == 'Волшебник'
        and (character.pollymorph or character.friendship)):
         if (result := wizard_spells(character)) is not False:
@@ -481,7 +479,7 @@ def start_fight(level, character):
 
 
 def monster_get_item(character):
-    '''Монстр забирает случайную шмотку при неудачной смывке.'''
+    """Монстр забирает случайную шмотку при неудачной смывке."""
     from random import choice
     from doors_game.cards import NO_ITEM, SPIKY_KNEES, TIGHTS
     from doors_game.text import PUSH_ENTER
@@ -519,7 +517,7 @@ def monster_get_item(character):
 
 
 def run_away(character):
-    '''Смывка при поражении в бою с монстром.'''
+    """Смывка при поражении в бою с монстром."""
     from pathlib import Path
     from playsound import playsound
     from random import randint
@@ -527,6 +525,7 @@ def run_away(character):
     from doors_game.text import (
         DICE, RUN_AWAY, PUSH_ENTER, RUN_AWAY_BAD, RUN_AWAY_OK, RUN_AWAY_SO_SO
     )
+
     MP3_PATH = str(Path(__file__).resolve().parent.parent / 'mp3/dice.mp3')
     DICE_IMAGES = {1: 'dice_one', 2: 'dice_two', 3: 'dice_three',
                    4: 'dice_four', 5: 'dice_five', 6: 'dice_six'}
@@ -564,8 +563,8 @@ def run_away(character):
 
 
 def doors_progress(level, table, index, event, finish=False):
-    '''Отобразить текущий уровень и закрытые двери для выбора.
-    А так же результат уже пройденных уровней.'''
+    """Отобразить текущий уровень и закрытые двери для выбора.
+    А так же результат уже пройденных уровней."""
     from prettytable import PrettyTable, DOUBLE_BORDER
     from termcolor import colored
 
@@ -611,7 +610,7 @@ def doors_progress(level, table, index, event, finish=False):
 
 
 def magic_spell():
-    '''Волшебное заклинание в битве с Ктулху.'''
+    """Волшебное заклинание в битве с Ктулху."""
     from doors_game.text import (
         MAGIC_SPELL, MAGIC_SPELL_OK, MAGIC_SPELL_WRONG, PUSH_ENTER
     )
@@ -626,13 +625,14 @@ def magic_spell():
 
 
 def boss_fight(character):
-    '''Запускает битву с главным боссом - Ктулху.'''
+    """Запускает битву с главным боссом - Ктулху."""
     from termcolor import colored
     from doors_game.monsters import CTHULHU
     from doors_game.text import (
         CTHULHU_MEET_1, CTHULHU_MEET_2, CTHULHU_MEET_3, LOSE_CTHULHU,
         PUSH_ENTER, WIN_CTHULHU
     )
+    from functions import change_rating_table
 
     monster = CTHULHU
     print('Тебе удалось пройти все уровни Башни.\n'
@@ -664,6 +664,7 @@ def boss_fight(character):
             input(PUSH_ENTER)
             print(WIN_CTHULHU)
             input(PUSH_ENTER)
+            change_rating_table(last_chance)
             return True
         character.health -= monster.attack(defence)
         if character.health <= 0:

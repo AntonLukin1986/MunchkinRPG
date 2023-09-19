@@ -55,7 +55,7 @@ def get_hard_attack() -> int:
 
 
 def get_user_attack() -> int:
-    '''Вычисляет совокупный урон от атак игрока.'''
+    """Вычисляет совокупный урон от атак игрока."""
     damage = 0
     attacks_types = {
         'лёгкая': get_lite_attack,
@@ -76,7 +76,7 @@ def get_user_attack() -> int:
 
 
 def run_game(fight: bool = False) -> Union[bool, int]:
-    '''Запускает мини-игру.'''
+    """Запускает мини-игру."""
     enemy_health = randint(80, 120)
     hint = 'ХХ' if len(str(enemy_health)) == 2 else 'ХХХ'
     print(f'‼ Противник получает {hint} ♥')
@@ -108,7 +108,7 @@ def run_game(fight: bool = False) -> Union[bool, int]:
 
 
 def start() -> int:
-    '''Запускает цикл тренировки, после чего три битвы в зачёт.'''
+    """Запускает цикл тренировки, после чего три битвы в зачёт."""
     replay = True
     while replay:
         replay = run_game()
