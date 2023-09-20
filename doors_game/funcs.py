@@ -661,6 +661,7 @@ def boss_fight(character):
         else:
             defence = character.defence()
         if monster.health <= 0:
+            monster.health = 100
             input(PUSH_ENTER)
             print(WIN_CTHULHU)
             input(PUSH_ENTER)
