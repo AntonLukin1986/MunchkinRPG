@@ -237,10 +237,12 @@ def get_treasure(character, cards_set):
     elif isinstance(card, Item):
         if card.kind == 'arm':
             # определяется, в какой руке самое слабое оружие
-            card.kind = weak_or_strong_arm(character)
-        have_item = getattr(character, card.kind)
+            to_change = weak_or_strong_arm(character)
+        else:
+            to_change = card.kind
+        have_item = getattr(character, to_change)
         if have_item.value < card.value:
-            setattr(character, card.kind, card)
+            setattr(character, to_change, card)
             print(f'{have_item} заменено на {card}')
         else:
             print(WEAK_ITEM.format(card))
